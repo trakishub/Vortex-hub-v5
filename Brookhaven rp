@@ -8763,6 +8763,14 @@ ScrTab:AddButton({
     end
 })
 
+ScrTab:AddSection({ "vortex drift " })
+ScrTab:AddButton({
+    Name = "drift script",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/trakishub/Vortex-drift/refs/heads/main/Drift"))()
+    end
+})
+
 local ScrTab = Window:MakeTab({ "Props", "rbxassetid://13364900349" })
 
 ScrTab:AddSection({ "Props scripts" })
