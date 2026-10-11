@@ -1,27 +1,3 @@
--- Bio
-game:GetService("ReplicatedStorage").RE["1RPNam1eTex1t"]:FireServer(unpack({
-    "RolePlayBio",
-    "| Vortex Hub best script |",
-}))
-
--- Nome
-game:GetService("ReplicatedStorage").RE["1RPNam1eTex1t"]:FireServer(unpack({
-    "RolePlayName",
-    "[ Vortex hub User ]",
-}))
-
--- Cor da Bio — PRETO
-game:GetService("ReplicatedStorage").RE["1RPNam1eColo1r"]:FireServer(unpack({
-    "PickingRPBioColor",
-    Color3.new(0, 0, 0) -- Preto
-}))
-
--- Cor do Nome — ROXO
-game:GetService("ReplicatedStorage").RE["1RPNam1eColo1r"]:FireServer(unpack({
-    "PickingRPNameColor",
-    Color3.fromRGB(140, 50, 255) -- Roxo
-}))
-
 
 local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/trakishub/V-rtex-library-/refs/heads/main/Vortex"))()
 
