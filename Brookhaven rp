@@ -27,14 +27,14 @@ local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/traki
 
 local Window = redzlib:MakeWindow({
 
-  Title = "Trakis Hub | V4.5",
+  Title = "    Vortex Hub  | V5",
   SubTitle = "By: By: Vitinzw22 and Cafezin"",
   SaveFolder = "testando | v5"
 })
 
 Window:AddMinimizeButton({
     Button = {
-        Image = "rbxassetid://123784982520259",
+        Image = "rbxassetid://118444640982733",
         BackgroundTransparency = 0
     },
     Corner = {
@@ -123,6 +123,87 @@ task.spawn(function()
 
             if not Button.Parent or not LED.Parent then
                 break
+--// LED ANIMADO NO BOTÃO ORIGINAL DA ZYRO
+
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+
+task.spawn(function()
+
+    -- Espera a interface da Zyro carregar
+    local Nexus
+
+    for i = 1, 50 do
+        Nexus = CoreGui:FindFirstChild("Nexus Library V1")
+
+        if Nexus then
+            break
+        end
+
+        task.wait(0.1)
+    end
+
+    if not Nexus then
+        warn("[Vortex Hub] Nexus Library V1 não encontrado.")
+        return
+    end
+
+    -- Pega o botão original
+    local Button
+
+    for i = 1, 50 do
+        Button = Nexus:FindFirstChild("ImageButton")
+
+        if Button then
+            break
+        end
+
+        task.wait(0.1)
+    end
+
+    if not Button then
+        warn("[Vortex Hub] Botão da Zyro não encontrado.")
+        return
+    end
+
+    -- Remove LED antigo caso o script seja executado novamente
+    local OldLED = Button:FindFirstChild("TrakisLED")
+
+    if OldLED then
+        OldLED:Destroy()
+    end
+
+    -- Cria a borda LED
+    local LED = Instance.new("UIStroke")
+    LED.Name = "VortexLED"
+    LED.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    LED.Color = Color3.fromRGB(138, 43, 226) -- Roxo (Purple/BlueViolet)
+    LED.Thickness = 2
+    LED.Transparency = 0
+    LED.Parent = Button
+
+    -- Animação
+    task.spawn(function()
+        while Button.Parent and LED.Parent do
+
+            local Dim = TweenService:Create(
+                LED,
+                TweenInfo.new(
+                    0.8,
+                    Enum.EasingStyle.Sine,
+                    Enum.EasingDirection.InOut
+                ),
+                {
+                    Transparency = 0.65,
+                    Thickness = 1.5
+                }
+            )
+
+            Dim:Play()
+            Dim.Completed:Wait()
+
+            if not Button.Parent or not LED.Parent then
+                break
             end
 
             local Bright = TweenService:Create(
@@ -144,13 +225,14 @@ task.spawn(function()
     end)
 end)
 
+
 --// RESTO DO SEU SCRIPT CONTINUA AQUI
 
 
 task.delay(1, function()
    Window:Dialog({
-      Title = "        TRAKIS HUB ATUALIZADO",
-      Text = "-- Novas músicas em funk",
+      Title = "      BEM-VINDO AO VORTEX HUB",
+      Text = "espero que goste o script foi feito com muito carinho",
       Options = {
         {
            "Discord",
@@ -190,12 +272,12 @@ print("Trakis hub")
 
 local InfoTab = Window:MakeTab({ "Informations", "info" })
 
-InfoTab:AddSection({ "Siga o vitin no tiktok!" })
+InfoTab:AddSection({ "ENTRE NO NOSSO DISCORD!" })
 
 InfoTab:AddDiscordInvite({
    Name = "entre no nosso server do Discord!",
    Description = "ainda nao temos mais logo teremos.",
-   Logo = "rbxassetid://123784982520259",
+   Logo = "rbxassetid://118444640982733",
    Invite = "",
 })
 
