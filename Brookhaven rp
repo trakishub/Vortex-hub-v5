@@ -9020,10 +9020,9 @@ ScrTab:AddButton({
 getgenv().KitKatConfig = {
     AuthorizedPlayersURL = "https://raw.githubusercontent.com/trakishub/Admin/refs/heads/main/README.md",
     SpecialTags = {
-        ["surf_2261"] = "Dono lindao do trakis",
-        ["Hey_zPUDIM"] = "Dono Do trakis",
-        ["77777"] = "Lider trakis",
-        ["7777"]  = "Dono Do KitK4t"
+        ["surf_2261"] = "Dono do vortex",
+        ["Hey_zPUDIM"] = "Dono Do Vortex",
+        ["ruy_0068"] = "Moderador Vortex",
     }
 }
 
@@ -9036,7 +9035,7 @@ pcall(function()
 end)
 
 local function IsPlayerAuthorized(playerName)
-    if getgenv().KitKatConfig.SpecialTags[playerName] then return true end
+    if getgenv().VortexConfig.SpecialTags[playerName] then return true end
     if type(AuthorizedPlayersList) ~= "table" then return false end
     local lowerName = string.lower(tostring(playerName))
     for _, name in ipairs(AuthorizedPlayersList) do
@@ -9048,10 +9047,10 @@ local function IsPlayerAuthorized(playerName)
 end
 
 local function GetCargo(playerName)
-    if getgenv().KitKatConfig.SpecialTags[playerName] then
-        return getgenv().KitKatConfig.SpecialTags[playerName]
+    if getgenv().VortexConfig.SpecialTags[playerName] then
+        return getgenv().VortexConfig.SpecialTags[playerName]
     elseif IsPlayerAuthorized(playerName) then
-        return "Moderador Trakis"
+        return "Moderador Vortex"
     end
     return ""
 end
@@ -9074,38 +9073,52 @@ local function CreatePlayerTag(playerName, tagText)
     RemovePlayerTag(playerName)
 
     local billboardGui = Instance.new("BillboardGui")
-    billboardGui.Name = "KitK4tTag"
+    billboardGui.Name = "VortexTag"
     billboardGui.Adornee = head
-    billboardGui.Size = UDim2.new(0, 150, 0, 30)
+    billboardGui.Size = UDim2.new(0, 130, 0, 32)
     billboardGui.AlwaysOnTop = true
     billboardGui.StudsOffset = Vector3.new(0, 2.5, 0)
     billboardGui.MaxDistance = 120
     billboardGui.Parent = head
 
-    local frame = Instance.new("Frame", billboardGui)
-    frame.Size = UDim2.new(1, 0, 1, 0)
-    frame.BackgroundColor3 = Color3.new(0, 0, 0)
-    frame.BackgroundTransparency = 0.25
-    frame.BorderSizePixel = 0
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
+    -- Container de fundo com Imagem e Roxo Escuro
+    local background = Instance.new("ImageLabel", billboardGui)
+    background.Size = UDim2.new(1, 0, 1, 0)
+    
+    -- Substitua pelo ID da imagem do Roblox que você quer usar de fundo
+    background.Image = "rbxassetid://" 
+    
+    -- Cor de fundo e tom da imagem em Roxo mais Escuro
+    background.ImageColor3 = Color3.fromRGB(60, 20, 90)
+    background.BackgroundColor3 = Color3.fromRGB(60, 20, 90)
+    background.BackgroundTransparency = 0.2 -- Ajuste se quiser ver mais/menos a cor base
+    background.BorderSizePixel = 0
+    background.ScaleType = Enum.ScaleType.Crop
 
-    local textLabel = Instance.new("TextLabel", frame)
-    textLabel.Size = UDim2.new(1, -8, 1, -8)
-    textLabel.Position = UDim2.new(0, 4, 0, 4)
+    -- Formato em pílula
+    local uiCorner = Instance.new("UICorner", background)
+    uiCorner.CornerRadius = UDim.new(0.5, 0)
+
+    -- Borda em tom roxo escuro combinando
+    local stroke = Instance.new("UIStroke", background)
+    stroke.Color = Color3.fromRGB(110, 40, 160)
+    stroke.Thickness = 2.5
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+    -- Texto/Nome em tom Roxo Brilhante
+    local textLabel = Instance.new("TextLabel", background)
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
     textLabel.BackgroundTransparency = 1
-    textLabel.Text = tagText
-    textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-    textLabel.TextSize = 12
+    textLabel.Text = string.upper(tagText)
+    textLabel.TextColor3 = Color3.fromRGB(190, 100, 255) -- Nome roxo
+    textLabel.TextSize = 14
     textLabel.Font = Enum.Font.GothamBold
-    textLabel.TextStrokeTransparency = 0
-    textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-
-    local glowEffect = Instance.new("UIStroke", frame)
-    glowEffect.Color = Color3.fromRGB(255, 0, 0)
-    glowEffect.Thickness = 1
+    textLabel.TextStrokeTransparency = 0.2
+    textLabel.TextStrokeColor3 = Color3.fromRGB(20, 10, 30)
 
     ActiveTags[playerName] = { Billboard = billboardGui, TagText = tagText }
 end
+
 
 local function createSpecialTag(player)
     if not player then return end
@@ -9115,7 +9128,7 @@ local function createSpecialTag(player)
         if getgenv().KitKatConfig.SpecialTags[player.Name] then
             tagText = getgenv().KitKatConfig.SpecialTags[player.Name]
         elseif IsPlayerAuthorized(player.Name) then
-            tagText = "Moderador KitK4t"
+            tagText = "Moderador Vortex"
         end
 
         if tagText then
@@ -9154,10 +9167,10 @@ trackThread(task.spawn(function()
             if ActiveTags[p.Name] then
                 pcall(function()
                     local tagText
-                    if getgenv().KitKatConfig.SpecialTags[p.Name] then
-                        tagText = getgenv().KitKatConfig.SpecialTags[p.Name]
+                    if getgenv().VortexConfig.SpecialTags[p.Name] then
+                        tagText = getgenv().VortexConfig.SpecialTags[p.Name]
                     elseif IsPlayerAuthorized(p.Name) then
-                        tagText = "Moderador KitK4t"
+                        tagText = "Moderador Vortex"
                     end
                     if tagText then
                         CreatePlayerTag(p.Name, tagText)
@@ -9167,4 +9180,3 @@ trackThread(task.spawn(function()
         end
     end
 end))
-
