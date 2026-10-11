@@ -1,16 +1,40 @@
+-- Bio
+game:GetService("ReplicatedStorage").RE["1RPNam1eTex1t"]:FireServer(unpack({
+    "RolePlayBio",
+    "| Vortex Hub best script |",
+}))
+
+-- Nome
+game:GetService("ReplicatedStorage").RE["1RPNam1eTex1t"]:FireServer(unpack({
+    "RolePlayName",
+    "[ Vortex hub User ]",
+}))
+
+-- Cor da Bio — PRETO
+game:GetService("ReplicatedStorage").RE["1RPNam1eColo1r"]:FireServer(unpack({
+    "PickingRPBioColor",
+    Color3.new(0, 0, 0) -- Preto
+}))
+
+-- Cor do Nome — ROXO
+game:GetService("ReplicatedStorage").RE["1RPNam1eColo1r"]:FireServer(unpack({
+    "PickingRPNameColor",
+    Color3.fromRGB(140, 50, 255) -- Roxo
+}))
+
 
 local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/trakishub/V-rtex-library-/refs/heads/main/Vortex"))()
 
 local Window = redzlib:MakeWindow({
 
   Title = "    Vortex Hub  | V5",
-  SubTitle = "By: By: Vitinzw22 and Cafezin"",
+  SubTitle = "By: Vitinzw22 and Cafezin",
   SaveFolder = "testando | v5"
 })
 
 Window:AddMinimizeButton({
     Button = {
-        Image = "rbxassetid://118444640982733",
+        Image = "rbxassetid://73920359467024",
         BackgroundTransparency = 0
     },
     Corner = {
@@ -18,87 +42,6 @@ Window:AddMinimizeButton({
     },
 })
 
---// LED ANIMADO NO BOTÃO ORIGINAL DA ZYRO
-
-local TweenService = game:GetService("TweenService")
-local CoreGui = game:GetService("CoreGui")
-
-task.spawn(function()
-
-    -- Espera a interface da Zyro carregar
-    local Nexus
-
-    for i = 1, 50 do
-        Nexus = CoreGui:FindFirstChild("Nexus Library V1")
-
-        if Nexus then
-            break
-        end
-
-        task.wait(0.1)
-    end
-
-    if not Nexus then
-        warn("[Trakis Hub] Nexus Library V1 não encontrado.")
-        return
-    end
-
-    -- Pega o botão original
-    local Button
-
-    for i = 1, 50 do
-        Button = Nexus:FindFirstChild("ImageButton")
-
-        if Button then
-            break
-        end
-
-        task.wait(0.1)
-    end
-
-    if not Button then
-        warn("[Trakis Hub] Botão da Zyro não encontrado.")
-        return
-    end
-
-    -- Remove LED antigo caso o script seja executado novamente
-    local OldLED = Button:FindFirstChild("TrakisLED")
-
-    if OldLED then
-        OldLED:Destroy()
-    end
-
-    -- Cria a borda LED
-    local LED = Instance.new("UIStroke")
-    LED.Name = "TrakisLED"
-    LED.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    LED.Color = Color3.fromRGB(255, 0, 0)
-    LED.Thickness = 2
-    LED.Transparency = 0
-    LED.Parent = Button
-
-    -- Animação
-    task.spawn(function()
-        while Button.Parent and LED.Parent do
-
-            local Dim = TweenService:Create(
-                LED,
-                TweenInfo.new(
-                    0.8,
-                    Enum.EasingStyle.Sine,
-                    Enum.EasingDirection.InOut
-                ),
-                {
-                    Transparency = 0.65,
-                    Thickness = 1.5
-                }
-            )
-
-            Dim:Play()
-            Dim.Completed:Wait()
-
-            if not Button.Parent or not LED.Parent then
-                break
 --// LED ANIMADO NO BOTÃO ORIGINAL DA ZYRO
 
 local TweenService = game:GetService("TweenService")
@@ -204,7 +147,7 @@ end)
 
 --// RESTO DO SEU SCRIPT CONTINUA AQUI
 
-
+    
 task.delay(1, function()
    Window:Dialog({
       Title = "      BEM-VINDO AO VORTEX HUB",
