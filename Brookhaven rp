@@ -1591,57 +1591,6 @@ GamepassTab:AddButton({
 }) 
 
 
--- Garanta que a aba seja criada no formato aceito pela sua UI Library
-local Tab = Window:MakeTab({
-    Name = "Fe Scripts",
-    Icon = "rbxassetid://121106070017957"
-})
-
--- Botão Padronizado (Exemplo)
-Tab:AddButton({
-    Name = "Naruto FE",
-    Callback = function()
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/mxskf/Legal/refs/heads/main/Dboas"))()
-        end)
-    end
-})
-
-Tab:AddButton({
-    Name = "Batman FE",
-    Callback = function()
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/mxskf/Legal/refs/heads/main/Dboas89"))()
-        end)
-    end
-})
-
-Tab:AddButton({
-    Name = "Sonic.Exe FE",
-    Callback = function()
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/mxskf/Legal/refs/heads/main/Dboas86"))()
-        end)
-    end
-})
-
-Tab:AddButton({
-    Name = "Camera De Carro",
-    Callback = function()
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/repositoryredzlib/Carfling/refs/heads/main/Main.txt"))()
-        end)
-    end
-})
-
-Tab:AddButton({
-    Name = "Emotes FE",
-    Callback = function()
-        pcall(function()
-            loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-AFEM-Max-Open-Alpha-50210"))()
-        end)
-    end
-})
 
 local TrollTab = Window:MakeTab({ "Trolling Map", "map" })
 
