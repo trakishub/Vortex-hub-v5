@@ -1868,6 +1868,7 @@ Tab:AddButton({
     end
 })
 
+
 local TrollTab = Window:MakeTab({ "Trolling Map", "map" })
 
 TrollTab:AddSection({ "Skybox by Bazuka" })
