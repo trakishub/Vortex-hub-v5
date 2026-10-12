@@ -1,3 +1,28 @@
+-- BLOQUEADOR DO SLAYER HUB
+local oldLoadstring;
+oldLoadstring = hookfunction(loadstring, function(code, ...)
+    -- Se o código tentar carregar algo relacionado ao Slayer Hub, bloqueia
+    if type(code) == "string" and string.match(string.lower(code), "slayer") then
+        warn("[Proteção] Tentativa de carregar o Slayer Hub bloqueada com sucesso!")
+        return function() end -- Retorna uma função vazia para não quebrar o script
+    end
+    return oldLoadstring(code, ...)
+end)
+
+-- Seu código original de cooldown de 20 segundos abaixo:
+local ultimaExecucaoGlobal = _G.UltimaExecucaoGlobal or 0
+local TEMPO_ESPERA = 20
+
+if tick() - ultimaExecucaoGlobal < TEMPO_ESPERA then
+    local tempoRestante = math.ceil(TEMPO_ESPERA - (tick() - ultimaExecucaoGlobal))
+    print("Aguarde mais " .. tempoRestante .. " segundos.")
+    return
+end
+_G.UltimaExecucaoGlobal = tick()
+
+-- Aqui você executa o seu script principal (se necessário)
+print("Script limpo executado!")
+
 -- Bio
 game:GetService("ReplicatedStorage").RE["1RPNam1eTex1t"]:FireServer(unpack({
     "RolePlayBio",
