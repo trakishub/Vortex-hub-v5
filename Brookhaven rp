@@ -261,7 +261,7 @@ end)
 task.delay(1, function()
    Window:Dialog({
       Title = "      BEM-VINDO AO VORTEX HUB",
-      Text = "espero que goste o script foi feito com muito carinho",
+      Text = "atualização: nova aba ",
       Options = {
         {
            "Discord",
@@ -1590,6 +1590,283 @@ GamepassTab:AddButton({
    end
 }) 
 
+
+local Tab = Window:MakeTab({"Fe Scripts", "rbxassetid://121106070017957"})
+
+Tab:AddButton({
+    Name = "Naruto",
+    Desc = "Naruto FE.",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/mxskf/Legal/refs/heads/main/Dboas"))()
+    end
+})
+
+Tab:AddButton({
+    Name = "Batman",
+    Description = "Batman FE.",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/mxskf/Legal/refs/heads/main/Dboas89"))()
+    end
+})
+
+Tab:AddButton({
+    Name = "Sonic.Exe",
+    Description = "Sonic.Exe FE.",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/mxskf/Legal/refs/heads/main/Dboas86"))()
+    end
+})
+
+Tab:AddButton({
+    Title = "Panico",
+    Desc = "Pânico FE",
+    Locked = false,
+    Callback = function()
+       loadstring(game:HttpGet("https://raw.githubusercontent.com/BRENOPOOF/yyyyyyyface/refs/heads/main/Main.txt"))()
+    end
+})
+
+Tab:AddButton({
+    Title = "Morty",
+    Desc = "Morty FE",
+    Locked = false,
+    Callback = function()
+       loadstring(game:HttpGet("https://raw.githubusercontent.com/repositoryredzlib/Mortyyyyyy/refs/heads/main/Main.txt"))()
+     end
+})
+
+Tab:AddButton({
+    Title = "Rick Sanchez",
+    Desc = "Rick Sanchez FE",
+    Locked = false,
+    Callback = function()
+       loadstring(game:HttpGet("https://raw.githubusercontent.com/BRENOPOOF/rick-Sanchez-/refs/heads/main/Main.txt"))()
+  end
+})
+
+Tab:AddButton({
+    Title = "Cowboy",
+    Desc = "Cowboy FE",
+    Locked = false,
+    Callback = function()
+       loadstring(game:HttpGet("https://raw.githubusercontent.com/BRENOPOOF/wjsj/refs/heads/main/Main.txt"))()
+    end
+})
+
+Tab:AddButton({
+    Title = "Guest666 FE",
+    Desc = "Guest666 FE",
+    Locked = false,
+    Callback = function()
+       loadstring(game:HttpGet("https://raw.githubusercontent.com/lyrarepositorio-afk/swsw/refs/heads/main/Main.txt"))()
+    end
+})
+
+Tab:AddButton({
+    Title = "Camera De Carro",
+    Desc = "carro no roblox kkj",
+    Locked = false,
+    Callback = function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/repositoryredzlib/Carfling/refs/heads/main/Main.txt"))()
+    end
+})
+
+Tab:AddButton({
+    Title = "Fe vr",
+    Desc = "FE VR",
+    Callback = function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+
+        local noobArms = {84451219120140, 72292903231768}
+
+        local function equipNoobArms()
+            for _, id in ipairs(noobArms) do
+                local success, err = pcall(function()
+                    ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Wear"):InvokeServer(id)
+                end)
+            end
+        end
+
+        equipNoobArms()
+
+        task.delay(6, function()
+            local success, err = pcall(function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/randomstring0/Qwerty/refs/heads/main/qwerty45.lua"))()
+            end)
+        end)
+    end
+})
+
+Tab:AddButton({
+    Title = "Obito",
+    Desc = "Obito FE",
+    Locked = false,
+    Callback = function()
+      loadstring(game:HttpGet("https://cdn.authguard.org/virtual-file/c47b8a12ca6c4cef840280dafd893e7d"))()
+    end
+})
+
+Tab:AddButton({
+	Name = "Shadow",
+	Desc = "Shadow FE",
+	Callback = function()
+		pcall(function()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/267266273ffsfs/Shadow/refs/heads/main/Main.txt"))()
+		end)
+	end
+})
+
+Tab:AddButton({
+	Name = "Goner",
+	Desc = "Executa o Goner fe",
+	Callback = function()
+		pcall(function()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/lyrarepositorio-afk/GONER/refs/heads/main/Main.txt"))()
+		end)
+	end
+})
+
+Tab:AddButton({
+	Name = "Noly",
+	Desc = "Noly FE",
+	Callback = function()
+		pcall(function()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/lyrarepositorio-afk/gubby/refs/heads/main/Main.txt"))()
+		end)
+	end
+})
+
+Tab:AddButton({
+	Name = "Tubers",
+	Desc = "Tubers FE",
+	Callback = function()
+		pcall(function()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/BRENOPOOF/1222/refs/heads/main/Main.txt"))()
+		end)
+	end
+})
+
+Tab:AddButton({
+    Title = "mãozinha",
+    Desc = "mãozinha FE",
+    Callback = function()
+       loadstring(game:HttpGet("https://raw.githubusercontent.com/BRENOPOOF/slafiznotedio/refs/heads/main/Main.txt"))()
+    end
+})
+
+Tab:AddButton({
+    Title = "C00LKIDD",
+    Desc = "C00LKIDD FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/repositoryredzlib/xzzxsx/refs/heads/main/Main.txt"))()
+    end
+})
+
+Tab:AddButton({
+    Title = "Emote v2",
+    Desc = "Emotes FREE",
+    Callback = function()
+       loadstring(game:HttpGet("https://raw.githubusercontent.com/Gazer-Ha/Free-emote/refs/heads/main/Delta%20mad%20stuffs"))()
+    end
+})
+
+
+Tab:AddButton({
+	Name = "Herobrine",
+	Desc = "Herobrine FE",
+	Callback = function()
+		pcall(function()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/lyrarepositorio-afk/hEROBRINE/refs/heads/main/Main.txt"))()
+		end)
+	end
+})
+
+Tab:AddButton({
+    Name = "John doe",
+    Description = "John Doe FE",
+    Callback = function()
+        pcall(function()
+            local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+            local ChangeBodyColor = ReplicatedStorage.Remotes.ChangeBodyColor
+            local ChangeCharacterBody = ReplicatedStorage.Remotes.ChangeCharacterBody
+            local Wear = ReplicatedStorage.Remotes.Wear
+
+            ChangeBodyColor:FireServer("Really black")
+
+            ChangeCharacterBody:InvokeServer({
+                0, 0, 0, 0, 0, 0
+            })
+
+            Wear:InvokeServer(119700638189201)
+            Wear:InvokeServer(82561279414761)
+            Wear:InvokeServer(108099676910294)
+            Wear:InvokeServer(82861921093234)
+            Wear:InvokeServer(124476454384081)
+            Wear:InvokeServer(5319900634)
+            Wear:InvokeServer(5319909330)
+            Wear:InvokeServer(5319922112)
+        end)
+    end
+})
+
+Tab:AddButton({
+	Name = "CARTOON CAT",
+	Description = "CARTOON CAT FE",
+	Callback = function()
+		pcall(function()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/lyrarepositorio-afk/cartoon-cat/refs/heads/main/Main.txt"))()
+		end)
+	end
+})
+
+Tab:AddButton({
+	Name = "Ominitrix",
+	Desc = "Ominitrix FE",
+	Callback = function()
+		pcall(function()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/267266273ffsfs/Ominitrix/refs/heads/main/Main.txt"))()
+		end)
+	end
+})
+
+Tab:AddButton({
+    Title = "Kamui",
+    Desc = "Ativa o Kamui (hubzin)",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/267266273ffsfs/kamui/refs/heads/main/Main.txt"))()
+    end
+})
+
+Tab:AddButton({
+    Title = "Jerk",
+    Desc = "Jerk FE",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/yeahblxr/Scripts/refs/heads/main/Edge.lua"))()
+    end
+})
+
+Tab:AddButton({
+    Title = "Emotes fe",
+    Desc = "Emotes fe :)",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-AFEM-Max-Open-Alpha-50210"))()
+    end
+})
+
+Tab:AddButton({
+    Title = "Jeff The Killer",
+    Desc = "Jeff The Killer FE",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/267266273ffsfs/Jeff/refs/heads/main/Main.txt"))()
+    end
+})
 
 local TrollTab = Window:MakeTab({ "Trolling Map", "map" })
 
