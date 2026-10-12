@@ -1,3 +1,88 @@
+-- =====================================================================
+-- SISTEMA DE LOG DE EXECUÇÃO COM SERVIDOR E PAÍS
+-- Compatível com Delta Executor
+-- =====================================================================
+
+-- Cole o link do seu Webhook do Discord entre as aspas abaixo:
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1559052346971918357/wA7zvO-YdqQ8C_tfExZiSwS9CiEP6LOT0yayNY9lljCJya60Z-qeeP0cdKhz64ygbGHZ"
+
+task.spawn(function()
+    local Players = game:GetService("Players")
+    local MarketService = game:GetService("MarketplaceService")
+    local LocalizationService = game:GetService("LocalizationService")
+    local LocalPlayer = Players.LocalPlayer
+
+    -- 1. Obtém o nome do jogo
+    local success, gameInfo = pcall(function()
+        return MarketService:GetProductInfo(game.PlaceId)
+    end)
+    local nomeJogo = success and gameInfo.Name or "Jogo Desconhecido"
+
+    -- 2. Obtém o País do Jogador via Roblox API
+    local pais = "Desconhecido"
+    pcall(function()
+        pais = LocalizationService:GetCountryRegionForPlayerAsync(LocalPlayer)
+    end)
+
+    -- 3. Identifica o código do servidor (JobId)
+    local serverId = (game.JobId ~= "" and game.JobId) or "Servidor Privado / Studio"
+
+    -- 4. Monta os dados para o Discord
+    local dados = {
+        ["content"] = "",
+        ["embeds"] = {{
+            ["title"] = "🚀 Alguém executou o seu Hub!",
+            ["color"] = 65280, -- Verde
+            ["fields"] = {
+                {
+                    ["name"] = "👤 Jogador:",
+                    ["value"] = LocalPlayer.Name .. " (@" .. LocalPlayer.DisplayName .. ")",
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = "🆔 User ID:",
+                    ["value"] = tostring(LocalPlayer.UserId),
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = "🌎 País:",
+                    ["value"] = tostring(pais),
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = "🗺️ Jogo:",
+                    ["value"] = nomeJogo .. " (PlaceID: " .. tostring(game.PlaceId) .. ")",
+                    ["inline"] = false
+                },
+                {
+                    ["name"] = "🖥️ Server ID (JobId):",
+                    ["value"] = "```" .. tostring(serverId) .. "```",
+                    ["inline"] = false
+                }
+            },
+            ["footer"] = {
+                ["text"] = "Sistema de Log • Delta Executor"
+            },
+            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }}
+    }
+
+    -- 5. Envia para o Discord via Http/Request do Executor
+    local httpRequest = http_request or request or (syn and syn.request)
+    if httpRequest then
+        pcall(function()
+            httpRequest({
+                Url = WEBHOOK_URL,
+                Method = "POST",
+                Headers = {
+                    ["Content-Type"] = "application/json"
+                },
+                Body = game:GetService("HttpService"):JSONEncode(dados)
+            })
+        end)
+    end
+end)
+
 -- BLOQUEADOR DO SLAYER HUB
 local oldLoadstring;
 oldLoadstring = hookfunction(loadstring, function(code, ...)
