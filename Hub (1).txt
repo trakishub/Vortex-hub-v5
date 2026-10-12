@@ -9015,3 +9015,29 @@ ScrTab:AddButton({
     end
 })
 
+-- Variáveis de controle de cooldown global
+local ultimaExecucaoGlobal = 0
+local TEMPO_ESPERA = 20 -- segundos
+
+local function executarScriptProtegido()
+    local tempoAtual = tick()
+    
+    -- Verifica se já passou o tempo necessário desde a última execução
+    if tempoAtual - ultimaExecucaoGlobal < TEMPO_ESPERA then
+        local tempoRestante = math.ceil(TEMPO_ESPERA - (tempoAtual - ultimaExecucaoGlobal))
+        print("Bloqueado! Aguarde mais " .. tempoRestante .. " segundos para rodar scripts novamente.")
+        return false
+    end
+    
+    -- Marca o tempo da execução atual imediatamente
+    ultimaExecucaoGlobal = tick()
+    
+    -- --- INSIRA O SEU CÓDIGO AQUI ---
+    print("Script executado com sucesso! Proteção de 20 segundos ativada.")
+    -- ---------------------------------
+    
+    return true
+end
+
+-- Chamada automática ao carregar/executar o script
+executarScriptProtegido()
