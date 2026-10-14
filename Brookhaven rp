@@ -8882,21 +8882,69 @@ ScrTab:AddButton({
     end
 })
 
-local ScrTab = Window:MakeTab({ "Props", "rbxassetid://13364900349" })
+local ScrTab = Window:MakeTab({ "Horror", "rbxassetid://13364900349" })
 
-ScrTab:AddSection({ "Props scripts" })
+ScrTab:AddSection({ "Naruto" })
 ScrTab:AddButton({
-    Name = "props verity",
+    Name = "Naruto Fe",
     Callback = function()
-        loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Repor-227601"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/mxskf/Legal/refs/heads/main/Dboas"))()
     end
 })
 
-ScrTab:AddSection({ "" })
+ScrTab:AddSection({ "Batman" })
 ScrTab:AddButton({
-    Name = "props jato",
+    Name = "Batman FE",
     Callback = function()
-        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-B-2-spirit-Brookhaven-13-props-227917"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/mxskf/Legal/refs/heads/main/Dboas89"))()
+    end
+})
+
+ScrTab:AddSection({ "Sonic exe" })
+ScrTab:AddButton({
+    Name = "Sonic Exe FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/mxskf/Legal/refs/heads/main/Dboas86"))()
+    end
+})
+
+ScrTab:AddSection({ "Panico" })
+ScrTab:AddButton({
+    Name = "Panico FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/BRENOPOOF/yyyyyyyface/refs/heads/main/Main.txt"))()
+    end
+})
+
+ScrTab:AddSection({ "Morty" })
+ScrTab:AddButton({
+    Name = "Morty FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/repositoryredzlib/Mortyyyyyy/refs/heads/main/Main.txt"))()
+    end
+})
+
+ScrTab:AddSection({ "Rick Sanchez" })
+ScrTab:AddButton({
+    Name = "Rick Sanchez FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/BRENOPOOF/rick-Sanchez-/refs/heads/main/Main.txt"))()
+    end
+})
+
+ScrTab:AddSection({ "Cowboy" })
+ScrTab:AddButton({
+    Name = "Cowboy FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/BRENOPOOF/wjsj/refs/heads/main/Main.txt"))()
+    end
+})
+
+ScrTab:AddSection({ "Guest666" })
+ScrTab:AddButton({
+    Name = "Guest666 FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/lyrarepositorio-afk/swsw/refs/heads/main/Main.txt"))()
     end
 })
 
