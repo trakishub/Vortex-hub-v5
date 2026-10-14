@@ -9265,6 +9265,6 @@ ScrTab:AddSection({ "painel admin" })
 ScrTab:AddButton({
     Name = "apenas donos conseguem usar",
     Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/trakishub/Painel-admin/refs/heads/main/Admin"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/trakishub/Painel-admin/refs/heads/main/PAINEL.txt"))()
     end
 })
