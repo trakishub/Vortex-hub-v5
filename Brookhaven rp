@@ -8948,6 +8948,94 @@ ScrTab:AddButton({
     end
 })
 
+ScrTab:AddSection({ "câmera de carro" })
+ScrTab:AddButton({
+    Name = "carro no roblox kkj",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/repositoryredzlib/Carfling/refs/heads/main/Main.txt"))()
+    end
+})
+
+ScrTab:AddSection({ "VR" })
+ScrTab:AddButton({
+    Name = "Fe vr",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/randomstring0/Qwerty/refs/heads/main/qwerty45.lua"))()
+    end
+})
+
+ScrTab:AddSection({ "Obito" })
+ScrTab:AddButton({
+    Name = "Obito FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://cdn.authguard.org/virtual-file/c47b8a12ca6c4cef840280dafd893e7d"))()
+    end
+})
+
+ScrTab:AddSection({ "Shadow" })
+ScrTab:AddButton({
+    Name = "Shadow FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/267266273ffsfs/Shadow/refs/heads/main/Main.txt"))()
+    end
+})
+
+ScrTab:AddSection({ "Goner" })
+ScrTab:AddButton({
+    Name = "Goner FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/lyrarepositorio-afk/GONER/refs/heads/main/Main.txt"))()
+    end
+})
+
+ScrTab:AddSection({ "Noly" })
+ScrTab:AddButton({
+    Name = "Noly FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/lyrarepositorio-afk/gubby/refs/heads/main/Main.txt"))()
+    end
+})
+
+ScrTab:AddSection({ "Tubers" })
+ScrTab:AddButton({
+    Name = "Tubers FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/BRENOPOOF/1222/refs/heads/main/Main.txt"))()
+    end
+})
+
+ScrTab:AddSection({ "mãozinha" })
+ScrTab:AddButton({
+    Name = "mãozinha FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/BRENOPOOF/slafiznotedio/refs/heads/main/Main.txt"))()
+    end
+})
+
+ScrTab:AddSection({ "C00LKIDD" })
+ScrTab:AddButton({
+    Name = "C00LKIDD FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/repositoryredzlib/xzzxsx/refs/heads/main/Main.txt"))()
+    end
+})
+
+ScrTab:AddSection({ "Jeff the killer" })
+ScrTab:AddButton({
+    Name = "Jeff the killer FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/267266273ffsfs/Jeff/refs/heads/main/Main.txt"))()
+    end
+})
+
+ScrTab:AddSection({ "Ominitrix" })
+ScrTab:AddButton({
+    Name = "Ominitrix FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/267266273ffsfs/Ominitrix/refs/heads/main/Main.txt"))()
+    end
+})
+
 local Tab = Window:MakeTab({"Teleports", "tp"}) 
 
 local Section = Tab:AddSection({
