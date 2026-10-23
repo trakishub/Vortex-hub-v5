@@ -1,0 +1,1424 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local TextChatService = game:GetService("TextChatService")
+local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+local CoreGui = game:GetService("CoreGui")
+local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Debris = game:GetService("Debris")
+local HttpService = game:GetService("HttpService")
+local LocalPlayer = Players.LocalPlayer
+local Workspace = workspace
+
+local BOT_TOKEN = ""
+local CHANNEL_ID = "1557741323963080746"
+local POLL = 2
+local TEMPO_MAX = 15
+
+local HORA_ENTRADA = os.time()
+
+local GITHUB_WHITELIST_URL = "https://raw.githubusercontent.com/gaga123308/Usu-rios-Drak-hub/refs/heads/main/User.lua"
+local CargosGlobais = {}
+
+pcall(function()
+    local rawData = game:HttpGet(GITHUB_WHITELIST_URL)
+    local func = loadstring(rawData)
+    if func then CargosGlobais = func() end
+end)
+
+if type(CargosGlobais) ~= "table" then CargosGlobais = {} end
+
+local AutorizadosDinamicos = {}
+local JAILED_PLAYERS = {}
+local FloppaRunning = false
+local jaProcessados = {}
+
+local BoardLabel = Workspace:FindFirstChild("BoardLabel", true) or (Workspace:FindFirstChild("SurfaceGui", true) and Workspace:FindFirstChild("SurfaceGui", true):FindFirstChildOfClass("TextLabel"))
+
+local JUMPSCARES = {
+    { Name = "jumps1", ImageId = "rbxassetid://126754882337711", AudioId = "rbxassetid://138873214826309" },
+    { Name = "jumps2", ImageId = "rbxassetid://86379969987314", AudioId = "rbxassetid://143942090" },
+    { Name = "jumps3", ImageId = "rbxassetid://127382022168206", AudioId = "rbxassetid://143942090" },
+    { Name = "jumps4", ImageId = "rbxassetid://95973611964555", AudioId = "rbxassetid://138873214826309" },
+}
+
+local function api(method, path, body)
+    local ok, res = pcall(function()
+        return request({
+            Url = "https://discord.com/api/v10" .. path,
+            Method = method,
+            Headers = {
+                ["Authorization"] = "Bot " .. BOT_TOKEN,
+                ["Content-Type"] = "application/json",
+            },
+            Body = body and HttpService:JSONEncode(body) or nil,
+        })
+    end)
+    if not ok then return nil end
+    if res.StatusCode >= 200 and res.StatusCode < 300 then
+        local ok2, data = pcall(HttpService.JSONDecode, HttpService, res.Body)
+        return ok2 and data or true
+    end
+    return nil
+end
+
+local function enviarMensagem(texto)
+    return api("POST", "/channels/" .. CHANNEL_ID .. "/messages", { content = texto })
+end
+
+local function lerMensagens(limit)
+    return api("GET", "/channels/" .. CHANNEL_ID .. "/messages?limit=" .. (limit or 30))
+end
+
+local function ObterTextoTag(player)
+    local cargo = CargosGlobais[player.Name]
+    if cargo == "Dono" then return "Dono Moon"
+    elseif cargo == "Sub dono" then return "Sub dono Moon"
+    elseif cargo == "Influenciador" then return "YT Influenciador"
+    elseif cargo == "Admin" then return "usuÃ¡rio admin"
+    elseif cargo == "Moderador" then return "Moderador Moon"
+    elseif cargo == "Staff" then return "Staff Moon"
+    else return nil end
+end
+
+local function AtribuirTagCorreta(player, extraText)
+    if not player then return end
+    local function apply()
+        local char = player.Character
+        if not char then return end
+        local head = char:FindFirstChild("Head")
+        if not head then return end
+        local cargoTag = ObterTextoTag(player)
+        local displayExtra = extraText
+        if AutorizadosDinamicos[player.Name] and not displayExtra then
+            displayExtra = "UsuÃ¡rio Moon"
+        end
+        if not cargoTag and not displayExtra then return end
+        local old = head:FindFirstChild("MoonTagContainer") or head:FindFirstChild("DrakTagContainer")
+        if old then old:Destroy() end
+        local gui = Instance.new("BillboardGui")
+        gui.Name = "MoonTagContainer"
+        gui.Size = UDim2.new(0, 240, 0, 80)
+        gui.StudsOffset = Vector3.new(0, 3.5, 0)
+        gui.AlwaysOnTop = true
+        gui.Adornee = head
+        gui.Parent = head
+        local layout = Instance.new("UIListLayout")
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+        layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        layout.VerticalAlignment = Enum.VerticalAlignment.Center
+        layout.Padding = UDim.new(0, 2)
+        layout.Parent = gui
+        if cargoTag then
+            local textCargo = Instance.new("TextLabel")
+            textCargo.Name = "CargoTag"
+            textCargo.Size = UDim2.new(1, 0, 0, 30)
+            textCargo.BackgroundTransparency = 1
+            textCargo.Font = Enum.Font.GothamBold
+            textCargo.TextScaled = true
+            textCargo.TextStrokeTransparency = 0.2
+            textCargo.TextStrokeColor3 = Color3.new(0, 0, 0)
+            textCargo.TextColor3 = Color3.fromRGB(255, 215, 0)
+            textCargo.Text = cargoTag
+            textCargo.LayoutOrder = 1
+            textCargo.Parent = gui
+        end
+        if displayExtra and (not cargoTag or displayExtra ~= cargoTag) then
+            local textExtra = Instance.new("TextLabel")
+            textExtra.Name = "ExtraTag"
+            textExtra.Size = UDim2.new(1, 0, 0, 25)
+            textExtra.BackgroundTransparency = 1
+            textExtra.Font = Enum.Font.GothamBold
+            textExtra.TextScaled = true
+            textExtra.TextStrokeTransparency = 0.2
+            textExtra.TextStrokeColor3 = Color3.new(0, 0, 0)
+            textExtra.TextColor3 = Color3.fromRGB(0, 180, 255)
+            textExtra.Text = displayExtra
+            textExtra.LayoutOrder = 2
+            textExtra.Parent = gui
+        end
+    end
+    pcall(apply)
+    player.CharacterAdded:Connect(function()
+        task.wait(0.4)
+        pcall(apply)
+    end)
+end
+
+local function EnviarMensagemChat(texto)
+    local canal = TextChatService.TextChannels:FindFirstChild("RBXGeneral") or TextChatService.TextChannels:GetChildren()[1]
+    if canal then canal:SendAsync(texto) end
+end
+
+local function NomeCorresponde(alvoDigitado, nomeJogador)
+    if not alvoDigitado or alvoDigitado == "" or not nomeJogador then return false end
+    alvoDigitado = alvoDigitado:lower()
+    nomeJogador = nomeJogador:lower()
+    return nomeJogador:sub(1, #alvoDigitado) == alvoDigitado
+end
+
+local function TransformIntoGoner()
+    pcall(function()
+        local remotes = ReplicatedStorage:WaitForChild("Remotes", 5) or ReplicatedStorage:WaitForChild("RE", 5)
+        if remotes and remotes:FindFirstChild("ChangeCharacterBody") then
+            remotes.ChangeCharacterBody:InvokeServer(unpack({{
+                116253341067642, 110703630520331, 119263803737569,
+                99234191703566, 99948897896884, 0
+            }}))
+        end
+        task.wait(3)
+        local player = game.Players.LocalPlayer
+        local humanoid = (player.Character or player.CharacterAdded:Wait()):WaitForChild("Humanoid")
+        local animation = Instance.new("Animation")
+        animation.AnimationId = "rbxassetid://4686925579"
+        humanoid:LoadAnimation(animation):Play()
+        humanoid.WalkSpeed = 0
+        task.wait(2)
+        local function ApplyGonerAppearance()
+            if remotes and remotes:FindFirstChild("Wear") then
+                local wearRemote = remotes.Wear
+                for _, accessory in ipairs(humanoid:GetAppliedDescription():GetAccessories(true)) do
+                    if accessory.AssetId then wearRemote:InvokeServer(unpack({tonumber(accessory.AssetId)})) end
+                end
+                task.wait()
+                wearRemote:InvokeServer(unpack({17771175724}))
+                wearRemote:InvokeServer(unpack({17822722698}))
+                wearRemote:InvokeServer(unpack({17822749561}))
+                wearRemote:InvokeServer(unpack({17772174303}))
+                wearRemote:InvokeServer(unpack({17770317484}))
+                wearRemote:InvokeServer(unpack({4586060885}))
+                wearRemote:InvokeServer(unpack({6913613757}))
+            end
+            if remotes and remotes:FindFirstChild("ChangeBodyColor") then
+                remotes.ChangeBodyColor:FireServer(unpack({"Really black"}))
+            end
+            task.wait(0.2)
+            if remotes and remotes:FindFirstChild("ApplyEmmiter") then
+                remotes.ApplyEmmiter:InvokeServer(18635845425, "087SmokeBlack")
+            end
+        end
+        task.wait(0.2)
+        local backpack = game.Players.LocalPlayer.Backpack
+        local character = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+        local punchTool = Instance.new("Tool")
+        punchTool.Name = "Soco"
+        punchTool.RequiresHandle = true
+        punchTool.CanBeDropped = false
+        punchTool.Parent = backpack
+        local handle = Instance.new("Part")
+        handle.Name = "Handle"
+        handle.Size = Vector3.new(1,1,1)
+        handle.Transparency = 1
+        handle.CanCollide = false
+        handle.Anchored = false
+        handle.Parent = punchTool
+        punchTool.Equipped:Connect(function()
+            punchTool.Activated:Connect(function()
+                local characterHumanoid = character:FindFirstChildOfClass("Humanoid")
+                if not characterHumanoid then return end
+                local animator = characterHumanoid:FindFirstChild("Animator")
+                if not animator then animator = Instance.new("Animator"); animator.Parent = characterHumanoid end
+                local punchAnimation = Instance.new("Animation")
+                punchAnimation.AnimationId = "rbxassetid://846744780"
+                local animationTrack = animator:LoadAnimation(punchAnimation)
+                animationTrack.Looped = false
+                animationTrack:Play()
+            end)
+        end)
+        ApplyGonerAppearance()
+        task.wait(1)
+        local resetHumanoid = (player.Character or player.CharacterAdded:Wait()):WaitForChild("Humanoid")
+        for _, track in pairs(resetHumanoid:GetPlayingAnimationTracks()) do track:Stop() end
+        resetHumanoid.WalkSpeed = 16
+    end)
+end
+
+local function CoolkidAvatar()
+    pcall(function()
+        local remotes = ReplicatedStorage:WaitForChild("Remotes", 5) or ReplicatedStorage:WaitForChild("RE", 5)
+        local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+        if not Humanoid or not remotes then return end
+        local Desc = Humanoid:GetAppliedDescription()
+        local WearRemote = remotes:FindFirstChild("Wear")
+        if WearRemote then
+            for _, accessory in ipairs(Desc:GetAccessories(true)) do
+                if accessory.AssetId then WearRemote:InvokeServer(unpack({tonumber(accessory.AssetId)})) end
+            end
+            task.wait()
+            remotes.ChangeCharacterBody:InvokeServer(unpack({{0, 0, 0, 0, 0, 0}}))
+            WearRemote:InvokeServer(18554114295)
+            WearRemote:InvokeServer(3164473649)
+            remotes.ChangeBodyColor:FireServer("Really red")
+            WearRemote:InvokeServer(6093233760)
+        end
+    end)
+end
+
+local animeConn
+local function StartAnimeJumpscare()
+    pcall(function()
+        local gui = Instance.new("ScreenGui")
+        gui.Name = "AnimeJumpscare"
+        gui.ResetOnSpawn = false
+        gui.IgnoreGuiInset = true
+        gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+        gui.DisplayOrder = 2147483647
+        gui.Parent = CoreGui
+        local whiteBackground = Instance.new("Frame")
+        whiteBackground.Size = UDim2.fromScale(1, 1)
+        whiteBackground.Position = UDim2.fromScale(0, 0)
+        whiteBackground.BackgroundColor3 = Color3.new(1, 1, 1)
+        whiteBackground.BorderSizePixel = 0
+        whiteBackground.ZIndex = 999999
+        whiteBackground.Parent = gui
+        local blocker = Instance.new("TextButton")
+        blocker.Size = UDim2.fromScale(1, 1)
+        blocker.BackgroundTransparency = 1
+        blocker.Text = ""
+        blocker.AutoButtonColor = false
+        blocker.Modal = true
+        blocker.ZIndex = whiteBackground.ZIndex + 1
+        blocker.Parent = whiteBackground
+        local image = Instance.new("ImageLabel")
+        image.AnchorPoint = Vector2.new(0.5, 0.5)
+        image.Position = UDim2.fromScale(0.5, 0.5)
+        image.Size = UDim2.fromScale(1, 1)
+        image.BackgroundTransparency = 1
+        image.Image = "rbxassetid://84838094344701"
+        image.ZIndex = blocker.ZIndex + 1
+        image.Parent = gui
+        local sound1 = Instance.new("Sound")
+        sound1.SoundId = "rbxassetid://82719020266339"
+        sound1.Volume = 1
+        sound1.Parent = gui
+        local sound2 = Instance.new("Sound")
+        sound2.SoundId = "rbxassetid://134884767490882"
+        sound2.Volume = 0.8
+        sound2.Looped = true
+        sound2.Parent = workspace
+        task.delay(2.8, function()
+            if image.Parent then image.Image = "rbxassetid://95558068230459" end
+        end)
+        local t = 0
+        if animeConn then animeConn:Disconnect() end
+        animeConn = RunService.RenderStepped:Connect(function(dt)
+            if not image.Parent then if animeConn then animeConn:Disconnect() end return end
+            t = t + dt * 5
+            image.Position = UDim2.fromScale(0.5 + math.sin(t * 7) * 0.02, 0.5 + math.cos(t * 8) * 0.02)
+            image.Size = UDim2.fromScale(1 + math.sin(t * 8) * 0.1, 1 + math.sin(t * 8) * 0.1)
+            image.Rotation = math.sin(t * 10) * 9
+        end)
+        sound1.Ended:Connect(function()
+            if gui and gui.Parent then gui:Destroy() end
+            sound2:Play()
+        end)
+        sound1:Play()
+        local oldSky = Lighting:FindFirstChildOfClass("Sky")
+        if oldSky then oldSky:Destroy() end
+        local sky = Instance.new("Sky")
+        sky.Name = "AnimeJumpscareSky"
+        sky.Parent = Lighting
+        local frames = {21076888,21076945,21077007,21077125,21077227,21077345,21077227,21077125,21077007,21076945}
+        task.spawn(function()
+            while sky and sky.Parent do
+                for _, id in ipairs(frames) do
+                    if not sky or not sky.Parent then break end
+                    local asset = "rbxassetid://" .. id
+                    sky.SkyboxBk = asset; sky.SkyboxDn = asset; sky.SkyboxFt = asset;
+                    sky.SkyboxLf = asset; sky.SkyboxRt = asset; sky.SkyboxUp = asset
+                    task.wait(0.1)
+                end
+            end
+        end)
+    end)
+end
+
+local function StopAnimeJumpscare()
+    pcall(function()
+        if animeConn then animeConn:Disconnect() end
+        local gui = CoreGui:FindFirstChild("AnimeJumpscare")
+        if gui then gui:Destroy() end
+        for _, s in ipairs(workspace:GetChildren()) do
+            if s:IsA("Sound") and s.SoundId == "rbxassetid://134884767490882" then
+                s:Stop(); s:Destroy()
+            end
+        end
+        local sky = Lighting:FindFirstChild("AnimeJumpscareSky")
+        if sky then sky:Destroy() end
+    end)
+end
+
+local function CreateAndManageJail(player)
+    if not player or not player.Character then return false end
+    local e = Workspace:FindFirstChild("Jail_" .. player.Name)
+    if e then e:Destroy() end
+    if JAILED_PLAYERS[player.Name] and JAILED_PLAYERS[player.Name].loop then
+        task.cancel(JAILED_PLAYERS[player.Name].loop)
+    end
+    local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+    local hum = player.Character:FindFirstChildOfClass("Humanoid")
+    if not hrp or not hum then return false end
+    local m = Instance.new("Model", Workspace)
+    m.Name = "Jail_" .. player.Name
+    local s = 8
+    local p = hrp.Position
+    local t = {
+        Base = Instance.new("Part", m),
+        Roof = Instance.new("Part", m),
+        Wall1 = Instance.new("Part", m),
+        Wall2 = Instance.new("Part", m),
+        Wall3 = Instance.new("Part", m),
+        Wall4 = Instance.new("Part", m)
+    }
+    t.Base.Size = Vector3.new(s, 0.5, s)
+    t.Base.Position = p - Vector3.new(0, hum.HipHeight + 0.25, 0)
+    t.Roof.Size = Vector3.new(s, 0.5, s)
+    t.Roof.Position = t.Base.Position + Vector3.new(0, s, 0)
+    t.Wall1.Size = Vector3.new(0.5, s, s)
+    t.Wall1.Position = t.Base.Position + Vector3.new(s / 2, s / 2, 0)
+    t.Wall2.Size = Vector3.new(0.5, s, s)
+    t.Wall2.Position = t.Base.Position - Vector3.new(s / 2, -s / 2, 0)
+    t.Wall3.Size = Vector3.new(s, s, 0.5)
+    t.Wall3.Position = t.Base.Position + Vector3.new(0, s / 2, s / 2)
+    t.Wall4.Size = Vector3.new(s, s, 0.5)
+    t.Wall4.Position = t.Base.Position - Vector3.new(0, -s / 2, s / 2)
+    for _, v in pairs(t) do
+        v.Anchored = true
+        v.CanCollide = true
+        v.Material = Enum.Material.Neon
+        v.Color = Color3.fromRGB(0, 200, 255)
+        v.Transparency = 0.6
+    end
+    if player == LocalPlayer then
+        local l = task.spawn(function()
+            local c = t.Base.Position + Vector3.new(0, hum.HipHeight, 0)
+            while JAILED_PLAYERS[player.Name] and player.Parent and player.Character and player.Character.Parent do
+                local h = player.Character:FindFirstChild("HumanoidRootPart")
+                if h and (h.Position - c).Magnitude > (s / 2) - 1 then h.CFrame = CFrame.new(c) end
+                task.wait(0.1)
+            end
+        end)
+        JAILED_PLAYERS[player.Name] = { loop = l }
+    else
+        JAILED_PLAYERS[player.Name] = {}
+    end
+    return true
+end
+
+local function RemoveJail(player)
+    if not player then return end
+    local e = Workspace:FindFirstChild("Jail_" .. player.Name)
+    if e then e:Destroy() end
+    if JAILED_PLAYERS[player.Name] then
+        if JAILED_PLAYERS[player.Name].loop then task.cancel(JAILED_PLAYERS[player.Name].loop) end
+        JAILED_PLAYERS[player.Name] = nil
+    end
+end
+
+local function CustomJumpscare(imageId, audioId)
+    local jumpscareGui = Instance.new("ScreenGui")
+    jumpscareGui.Name = "CustomJumpscare"
+    jumpscareGui.IgnoreGuiInset = true
+    jumpscareGui.ResetOnSpawn = false
+    jumpscareGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    jumpscareGui.DisplayOrder = 999999
+    pcall(function() jumpscareGui.Parent = CoreGui end)
+    if not jumpscareGui.Parent then jumpscareGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+    local image = Instance.new("ImageLabel")
+    image.Size = UDim2.new(1.2, 0, 1.2, 0)
+    image.Position = UDim2.new(-0.1, 0, -0.1, 0)
+    image.BackgroundTransparency = 1
+    image.Image = imageId or "rbxassetid://108753859505348"
+    image.ZIndex = 999999
+    image.Parent = jumpscareGui
+    local sound = Instance.new("Sound")
+    sound.SoundId = audioId or "rbxassetid://18967004856"
+    sound.Volume = 10
+    sound.Parent = SoundService
+    local shaking = true
+    task.spawn(function()
+        while shaking do
+            local offsetX = math.random(-10, 10)
+            local offsetY = math.random(-10, 10)
+            image.Position = UDim2.new(-0.1, offsetX, -0.1, offsetY)
+            task.wait(0.02)
+        end
+    end)
+    image.Visible = true
+    sound:Play()
+    task.delay(2.5, function()
+        shaking = false
+        jumpscareGui:Destroy()
+        sound:Destroy()
+    end)
+end
+
+local function Jumpscare()
+    CustomJumpscare("rbxassetid://108753859505348", "rbxassetid://18967004856")
+end
+
+local function CoolkidEffect(targetPlayer)
+    if not targetPlayer then return end
+    local sky = Instance.new("Sky")
+    sky.SkyboxBk = "rbxassetid://100048062301288"
+    sky.SkyboxDn = "rbxassetid://100048062301288"
+    sky.SkyboxFt = "rbxassetid://100048062301288"
+    sky.SkyboxLf = "rbxassetid://100048062301288"
+    sky.SkyboxRt = "rbxassetid://100048062301288"
+    sky.SkyboxUp = "rbxassetid://100048062301288"
+    sky.Parent = game.Lighting
+    local decalId = "rbxassetid://100048062301288"
+    local function applyDecals(part)
+        if part:IsA("BasePart") then
+            for _, face in pairs(Enum.NormalId:GetEnumItems()) do
+                local decal = Instance.new("Decal")
+                decal.Face = face
+                decal.Texture = decalId
+                decal.Parent = part
+            end
+        end
+    end
+    for _, part in pairs(workspace:GetDescendants()) do applyDecals(part) end
+    workspace.DescendantAdded:Connect(function(descendant) applyDecals(descendant) end)
+    local imageId = "rbxassetid://100048062301288"
+    local function criarParticula(parte)
+        local particle = Instance.new("ParticleEmitter")
+        particle.Texture = imageId
+        particle.Rate = 10
+        particle.Lifetime = NumberRange.new(1)
+        particle.Speed = NumberRange.new(2, 5)
+        particle.Size = NumberSequence.new(1)
+        particle.Rotation = NumberRange.new(0, 360)
+        particle.RotSpeed = NumberRange.new(10)
+        particle.SpreadAngle = Vector2.new(360, 360)
+        particle.Parent = parte
+    end
+    local function aplicarParticulas(character)
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") and not part:FindFirstChildOfClass("ParticleEmitter") then criarParticula(part) end
+        end
+    end
+    if targetPlayer.Character then aplicarParticulas(targetPlayer.Character) end
+    targetPlayer.CharacterAdded:Connect(aplicarParticulas)
+    local gui = Instance.new("ScreenGui", CoreGui)
+    gui.Name = "c00lkidTopBar"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+    local topBar = Instance.new("Frame", gui)
+    topBar.BackgroundColor3 = Color3.new(0, 0, 0)
+    topBar.Size = UDim2.new(1, 100, 0, 25)
+    topBar.Position = UDim2.new(0, -50, 0, 0)
+    topBar.BorderSizePixel = 0
+    topBar.ZIndex = 2
+    local title = Instance.new("TextLabel", topBar)
+    title.Size = UDim2.new(1, 0, 1, 0)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "Game Hacked"
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.Font = Enum.Font.SourceSans
+    title.TextSize = 20
+    title.TextStrokeTransparency = 0.5
+    title.TextStrokeColor3 = Color3.new(0, 0, 0)
+    title.ZIndex = 3
+    local Sound = Instance.new("Sound")
+    Sound.SoundId = "rbxassetid://99986264226275"
+    Sound.Looped = false
+    Sound.Parent = workspace
+    local function playSoundWithRandomSettings()
+        Sound.Volume = math.random(1, 3)
+        Sound.PlaybackSpeed = math.random(20, 30) / 100
+        Sound:Play()
+    end
+    playSoundWithRandomSettings()
+    Sound.Ended:Connect(playSoundWithRandomSettings)
+end
+
+local function FloppaRain()
+    FloppaRunning = true
+    local sky = Instance.new("Sky")
+    sky.SkyboxBk = "rbxassetid://123446364161879"
+    sky.SkyboxDn = "rbxassetid://123446364161879"
+    sky.SkyboxFt = "rbxassetid://123446364161879"
+    sky.SkyboxLf = "rbxassetid://123446364161879"
+    sky.SkyboxRt = "rbxassetid://123446364161879"
+    sky.SkyboxUp = "rbxassetid://123446364161879"
+    sky.Parent = game.Lighting
+    task.spawn(function()
+        while FloppaRunning do
+            local sound = Instance.new("Sound")
+            sound.SoundId = "rbxassetid://8772968188"
+            sound.Volume = 1
+            sound.Parent = workspace
+            sound:Play()
+            task.wait(5)
+        end
+    end)
+    task.wait(1)
+    local floppaTemplate = Instance.new("Part")
+    floppaTemplate.Size = Vector3.new(2,2,2)
+    floppaTemplate.Anchored = false
+    floppaTemplate.CanCollide = true
+    local textureId = "rbxassetid://123446364161879"
+    local function ApplyFloppaTexture(part)
+        for _, faceName in pairs({"Front","Back","Left","Right","Top","Bottom"}) do
+            local decal = Instance.new("Decal")
+            decal.Texture = textureId
+            decal.Face = Enum.NormalId[faceName]
+            decal.Parent = part
+        end
+    end
+    local function OnFloppaTouch(part)
+        part.Touched:Connect(function(hit)
+            local humanoid = hit.Parent:FindFirstChildOfClass("Humanoid")
+            if humanoid then humanoid:TakeDamage(10) end
+        end)
+    end
+    local floppaCount = 0
+    local MAX_FLOPPAS = 80
+    while FloppaRunning do
+        if floppaCount < MAX_FLOPPAS then
+            for i = 1, 5 do
+                local floppa = floppaTemplate:Clone()
+                floppa.Position = Vector3.new(math.random(-250,250), 100, math.random(-250,250))
+                ApplyFloppaTexture(floppa)
+                OnFloppaTouch(floppa)
+                floppa.Parent = workspace
+                Debris:AddItem(floppa, 8)
+                floppaCount = floppaCount + 1
+            end
+        end
+        task.wait(0.5)
+    end
+end
+
+local function StopFloppa()
+    FloppaRunning = false
+    for _, obj in ipairs(Workspace:GetChildren()) do
+        if obj:IsA("Part") and obj.Size == Vector3.new(2,2,2) then
+            local hasTexture = false
+            for _, child in ipairs(obj:GetChildren()) do
+                if child:IsA("Decal") then hasTexture = true; break end
+            end
+            if hasTexture then pcall(function() obj:Destroy() end) end
+        end
+    end
+    local flopSky = game.Lighting:FindFirstChildOfClass("Sky")
+    if flopSky then flopSky:Destroy() end
+end
+
+local function DomainExpansion(targetPlayer)
+    if not targetPlayer or not targetPlayer.Character then return false end
+    local targetHrp = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not targetHrp then return false end
+    local originalCFrame = targetHrp.CFrame
+    local domainCenter = Vector3.new(5000, 100, 5000)
+    local savedLighting = {
+        Brightness = Lighting.Brightness, Ambient = Lighting.Ambient,
+        OutdoorAmbient = Lighting.OutdoorAmbient, FogEnd = Lighting.FogEnd,
+        FogStart = Lighting.FogStart, FogColor = Lighting.FogColor,
+        ClockTime = Lighting.ClockTime, ShadowSoftness = Lighting.ShadowSoftness,
+    }
+    local savedEffects = {}
+    for _, eff in ipairs(Lighting:GetChildren()) do
+        if eff:IsA("PostEffect") or eff:IsA("Sky") or eff:IsA("Atmosphere") then
+            savedEffects[#savedEffects + 1] = eff:Clone()
+            eff:Destroy()
+        end
+    end
+    local sg = Instance.new("ScreenGui", CoreGui)
+    sg.ResetOnSpawn = false
+    sg.DisplayOrder = 999999
+    sg.IgnoreGuiInset = true
+    local bg = Instance.new("Frame", sg)
+    bg.Size = UDim2.new(2, 0, 2, 0)
+    bg.Position = UDim2.new(-0.5, 0, -0.5, 0)
+    bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    bg.BackgroundTransparency = 0
+    bg.BorderSizePixel = 0
+    bg.ZIndex = 999
+    local titleLabel = Instance.new("TextLabel", sg)
+    titleLabel.Size = UDim2.new(1, 0, 0.2, 0)
+    titleLabel.Position = UDim2.new(0, 0, 0.4, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.TextColor3 = Color3.fromRGB(200, 0, 0)
+    titleLabel.TextTransparency = 1
+    titleLabel.Font = Enum.Font.Antique
+    titleLabel.TextScaled = true
+    titleLabel.Text = "Malevolent Shrine"
+    titleLabel.ZIndex = 1000
+    titleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    titleLabel.TextStrokeTransparency = 0
+    task.wait(0.8)
+    targetHrp.CFrame = CFrame.new(domainCenter)
+    Lighting.Brightness = 0.3
+    Lighting.ClockTime = 0
+    Lighting.ShadowSoftness = 1
+    Lighting.Ambient = Color3.fromRGB(60, 0, 0)
+    Lighting.OutdoorAmbient = Color3.fromRGB(40, 0, 0)
+    Lighting.FogStart = 5
+    Lighting.FogEnd = 60
+    Lighting.FogColor = Color3.fromRGB(5, 0, 0)
+    local domainSky = Instance.new("Sky", Lighting)
+    domainSky.SkyboxBk = "rbxassetid://6444884337"
+    domainSky.SkyboxDn = "rbxassetid://6444884337"
+    domainSky.SkyboxFt = "rbxassetid://6444884337"
+    domainSky.SkyboxLf = "rbxassetid://6444884337"
+    domainSky.SkyboxRt = "rbxassetid://6444884337"
+    domainSky.SkyboxUp = "rbxassetid://6444884337"
+    local atm = Instance.new("Atmosphere", Lighting)
+    atm.Density = 1; atm.Offset = 0
+    atm.Color = Color3.fromRGB(30, 0, 0)
+    atm.Decay = Color3.fromRGB(10, 0, 0)
+    atm.Glare = 0; atm.Haze = 2.3
+    local cc = Instance.new("ColorCorrectionEffect", Lighting)
+    cc.Brightness = -0.04; cc.Contrast = 0.3
+    cc.Saturation = -0.6
+    cc.TintColor = Color3.fromRGB(255, 80, 80)
+    local bloom = Instance.new("BloomEffect", Lighting)
+    bloom.Intensity = 0.6; bloom.Size = 24; bloom.Threshold = 0.8
+    local floor = Instance.new("Part")
+    floor.Size = Vector3.new(300, 1, 300)
+    floor.Anchored = true; floor.CanCollide = true
+    floor.Material = Enum.Material.SmoothPlastic
+    floor.Color = Color3.fromRGB(10, 3, 3)
+    floor.CFrame = CFrame.new(domainCenter - Vector3.new(0, 3, 0))
+    floor.Parent = workspace
+    local texture = Instance.new("Texture", floor)
+    texture.Texture = "rbxassetid://74258839"
+    texture.Color3 = Color3.fromRGB(80, 0, 0)
+    texture.Transparency = 0.85
+    texture.StudsPerTileU = 6; texture.StudsPerTileV = 6
+    texture.Face = Enum.NormalId.Top
+    local sphere = Instance.new("Part")
+    sphere.Shape = Enum.PartType.Ball
+    sphere.Size = Vector3.new(1, 1, 1)
+    sphere.Anchored = true; sphere.CanCollide = false
+    sphere.CastShadow = false
+    sphere.Material = Enum.Material.SmoothPlastic
+    sphere.Color = Color3.fromRGB(0, 0, 0)
+    sphere.Transparency = 0
+    sphere.Position = domainCenter
+    sphere.Parent = workspace
+    local sphereInner = Instance.new("Part")
+    sphereInner.Shape = Enum.PartType.Ball
+    sphereInner.Size = Vector3.new(1, 1, 1)
+    sphereInner.Anchored = true; sphereInner.CanCollide = false
+    sphereInner.CastShadow = false
+    sphereInner.Material = Enum.Material.Neon
+    sphereInner.Color = Color3.fromRGB(120, 0, 0)
+    sphereInner.Transparency = 0.92
+    sphereInner.Position = domainCenter
+    sphereInner.Parent = workspace
+    TweenService:Create(bg, TweenInfo.new(1.5), {BackgroundTransparency = 1}):Play()
+    task.delay(0.5, function()
+        TweenService:Create(titleLabel, TweenInfo.new(1), {TextTransparency = 0}):Play()
+        task.delay(2.5, function()
+            TweenService:Create(titleLabel, TweenInfo.new(1.2), {TextTransparency = 1}):Play()
+        end)
+    end)
+    task.spawn(function()
+        for i = 1, 120, 2 do
+            if sphere and sphere.Parent then
+                sphere.Size = Vector3.new(i, i, i)
+                sphereInner.Size = Vector3.new(i * 0.97, i * 0.97, i * 0.97)
+            end
+            task.wait(0.015)
+        end
+    end)
+    task.wait(1.5)
+    local playerLookVector = originalCFrame.LookVector
+    local flatLook = Vector3.new(playerLookVector.X, 0, playerLookVector.Z).Unit
+    local shrineOffset = flatLook * 20
+    local shrineAssets = game:GetObjects("rbxassetid://16639433873")
+    local shrine
+    if shrineAssets and #shrineAssets > 0 then
+        shrine = shrineAssets[1]
+        shrine.Parent = workspace
+        local p = shrine.PrimaryPart or shrine:FindFirstChildWhichIsA("BasePart")
+        if p then
+            shrine.PrimaryPart = p
+            local shrinePos = domainCenter + shrineOffset + Vector3.new(0, -2, 0)
+            shrine:SetPrimaryPartCFrame(CFrame.lookAt(shrinePos, domainCenter + Vector3.new(0, shrinePos.Y - domainCenter.Y, 0)))
+        end
+        local coresByName = {
+            Skull = Color3.fromRGB(220, 200, 180), Horn = Color3.fromRGB(180, 160, 140),
+            Shrine = Color3.fromRGB(60, 40, 40), Roof1 = Color3.fromRGB(40, 20, 20),
+            Roof2 = Color3.fromRGB(40, 20, 20), Roof3 = Color3.fromRGB(40, 20, 20),
+            Teethonroof = Color3.fromRGB(220, 200, 180),
+            Mouth1 = Color3.fromRGB(200, 10, 10), Mouth2 = Color3.fromRGB(200, 10, 10),
+            Thingy = Color3.fromRGB(180, 5, 5), ceiling = Color3.fromRGB(30, 15, 15),
+        }
+        for _, v in ipairs(shrine:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.Anchored = true; v.CanCollide = false
+                v.Material = Enum.Material.SmoothPlastic
+                v.Color = coresByName[v.Name] or Color3.fromRGB(50, 25, 25)
+            end
+            if v:IsA("SurfaceAppearance") then v:Destroy() end
+            if v:IsA("ParticleEmitter") then v.Enabled = true end
+            if v:IsA("Sound") then v.Parent = workspace; v:Play() end
+        end
+    end
+    local assets = game:GetObjects("rbxassetid://18618934824")
+    local model, fxPart
+    if assets and #assets > 0 then
+        model = assets[1]
+        model.Parent = workspace
+        fxPart = model:FindFirstChild("DomainExpansionFX", true)
+        if fxPart then
+            fxPart.Anchored = true; fxPart.CanCollide = false
+            fxPart.CFrame = CFrame.new(domainCenter)
+            for _, v in ipairs(fxPart:GetDescendants()) do
+                if v:IsA("ParticleEmitter") then v.Enabled = true end
+            end
+        end
+        local starterPack = model:FindFirstChild("StarterPack", true)
+        if starterPack then
+            for _, v in ipairs(starterPack:GetDescendants()) do
+                if v:IsA("Sound") then v.Parent = workspace; v:Play() end
+            end
+        end
+    end
+    local lightPart = Instance.new("Part")
+    lightPart.Size = Vector3.new(1,1,1); lightPart.Anchored = true
+    lightPart.CanCollide = false; lightPart.Transparency = 1
+    lightPart.Position = domainCenter + Vector3.new(0, 8, 0)
+    lightPart.Parent = workspace
+    local redLight = Instance.new("PointLight", lightPart)
+    redLight.Color = Color3.fromRGB(200, 0, 0)
+    redLight.Brightness = 10; redLight.Range = 80
+    local lightPart2 = Instance.new("Part")
+    lightPart2.Size = Vector3.new(1,1,1); lightPart2.Anchored = true
+    lightPart2.CanCollide = false; lightPart2.Transparency = 1
+    lightPart2.Position = domainCenter + Vector3.new(0, -1, 0)
+    lightPart2.Parent = workspace
+    local darkLight = Instance.new("PointLight", lightPart2)
+    darkLight.Color = Color3.fromRGB(100, 0, 0)
+    darkLight.Brightness = 5; darkLight.Range = 60
+    task.spawn(function()
+        while lightPart and lightPart.Parent do
+            TweenService:Create(redLight, TweenInfo.new(0.4), {Brightness = 15}):Play()
+            TweenService:Create(darkLight, TweenInfo.new(0.4), {Brightness = 8}):Play()
+            task.wait(0.4)
+            TweenService:Create(redLight, TweenInfo.new(0.4), {Brightness = 6}):Play()
+            TweenService:Create(darkLight, TweenInfo.new(0.4), {Brightness = 2}):Play()
+            task.wait(0.4)
+        end
+    end)
+    local slashRunning = true
+    task.spawn(function()
+        local hue = 0
+        while slashRunning do
+            for i = 1, 10 do
+                task.spawn(function()
+                    local slash = Instance.new("Part")
+                    slash.Size = Vector3.new(0.12, math.random(5, 16), 0.12)
+                    slash.Anchored = true; slash.CanCollide = false
+                    slash.Material = Enum.Material.Neon
+                    slash.Color = Color3.fromRGB(math.random(220, 255), math.random(0, 40), 0)
+                    slash.Transparency = 0
+                    local angle = (i / 10) * math.pi * 2 + (hue * 0.1)
+                    local radius = math.random(4, 25)
+                    local height = math.random(-2, 10)
+                    slash.CFrame = CFrame.new(
+                        domainCenter.X + math.cos(angle) * radius,
+                        domainCenter.Y + height,
+                        domainCenter.Z + math.sin(angle) * radius
+                    ) * CFrame.Angles(
+                        math.random(-15, 15) * 0.1,
+                        math.random(-15, 15) * 0.1,
+                        math.random(-15, 15) * 0.1
+                    )
+                    slash.Parent = workspace
+                    local trail = Instance.new("PointLight", slash)
+                    trail.Color = Color3.fromRGB(255, 20, 0)
+                    trail.Brightness = 3; trail.Range = 10
+                    TweenService:Create(slash, TweenInfo.new(0.12, Enum.EasingStyle.Quad), {Transparency = 1}):Play()
+                    task.delay(0.15, function() slash:Destroy() end)
+                end)
+            end
+            hue = hue + 1
+            task.wait(0.2)
+        end
+    end)
+    local ashPart = Instance.new("Part")
+    ashPart.Size = Vector3.new(1,1,1); ashPart.Anchored = true
+    ashPart.CanCollide = false; ashPart.Transparency = 1
+    ashPart.Position = domainCenter + Vector3.new(0, 2, 0)
+    ashPart.Parent = workspace
+    local ashEmitter = Instance.new("ParticleEmitter", ashPart)
+    ashEmitter.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 0, 0)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 0, 0)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 0, 0)),
+    })
+    ashEmitter.LightEmission = 0.3; ashEmitter.LightInfluence = 0.8
+    ashEmitter.Size = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 0)})
+    ashEmitter.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 1)})
+    ashEmitter.Lifetime = NumberRange.new(3, 6)
+    ashEmitter.Rate = 60; ashEmitter.Speed = NumberRange.new(2, 8)
+    ashEmitter.SpreadAngle = Vector2.new(180, 180)
+    ashEmitter.RotSpeed = NumberRange.new(-45, 45)
+    ashEmitter.Rotation = NumberRange.new(0, 360)
+    local damageRunning = true
+    task.spawn(function()
+        while damageRunning do
+            local char = targetPlayer.Character
+            if char then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hum and hum.Health > 0 then hum:TakeDamage(5) end
+            end
+            task.wait(0.8)
+        end
+    end)
+    task.delay(8, function()
+        slashRunning = false
+        damageRunning = false
+        ashEmitter.Enabled = false
+        if fxPart then
+            for _, v in ipairs(fxPart:GetDescendants()) do
+                if v:IsA("ParticleEmitter") then v.Enabled = false end
+            end
+        end
+        TweenService:Create(bg, TweenInfo.new(1), {BackgroundTransparency = 0}):Play()
+        task.wait(1)
+        if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            targetPlayer.Character.HumanoidRootPart.CFrame = originalCFrame
+        end
+        Lighting.Brightness = savedLighting.Brightness
+        Lighting.Ambient = savedLighting.Ambient
+        Lighting.OutdoorAmbient = savedLighting.OutdoorAmbient
+        Lighting.FogEnd = savedLighting.FogEnd
+        Lighting.FogStart = savedLighting.FogStart
+        Lighting.FogColor = savedLighting.FogColor
+        Lighting.ClockTime = savedLighting.ClockTime
+        Lighting.ShadowSoftness = savedLighting.ShadowSoftness
+        if domainSky and domainSky.Parent then domainSky:Destroy() end
+        if atm and atm.Parent then atm:Destroy() end
+        if cc and cc.Parent then cc:Destroy() end
+        if bloom and bloom.Parent then bloom:Destroy() end
+        for _, eff in ipairs(savedEffects) do eff.Parent = Lighting end
+        task.spawn(function()
+            for i = 120, 0, -2 do
+                if sphere and sphere.Parent then
+                    sphere.Size = Vector3.new(i, i, i)
+                    sphereInner.Size = Vector3.new(i * 0.97, i * 0.97, i * 0.97)
+                end
+                task.wait(0.015)
+            end
+            if sphere and sphere.Parent then sphere:Destroy() end
+            if sphereInner and sphereInner.Parent then sphereInner:Destroy() end
+        end)
+        task.wait(1.5)
+        TweenService:Create(bg, TweenInfo.new(1.5), {BackgroundTransparency = 1}):Play()
+        task.delay(2, function()
+            sg:Destroy()
+            if model and model.Parent then model:Destroy() end
+            if shrine and shrine.Parent then shrine:Destroy() end
+            if floor and floor.Parent then floor:Destroy() end
+            if lightPart and lightPart.Parent then lightPart:Destroy() end
+            if lightPart2 and lightPart2.Parent then lightPart2:Destroy() end
+            if ashPart and ashPart.Parent then ashPart:Destroy() end
+        end)
+    end)
+    return true
+end
+
+local playerOriginalSpeed = {}
+local HasTriggeredVerifique = false
+
+local function ProcessarMensagemChat(msgText, authorName)
+    if not msgText or not authorName then return end
+    local comandoLower = msgText:lower()
+    if comandoLower:match("^;verifique") then
+        if authorName ~= LocalPlayer.Name and not HasTriggeredVerifique then
+            HasTriggeredVerifique = true
+            task.delay(math.random(10, 30) / 100, function()
+                EnviarMensagemChat("Moon_" .. tostring(math.random(1000, 9999)))
+            end)
+            task.delay(4, function() HasTriggeredVerifique = false end)
+        end
+    end
+    if msgText:match("[Mm]oon_%d%d%d%d") then
+        local authorPlayer = Players:FindFirstChild(authorName)
+        if authorPlayer then
+            AutorizadosDinamicos[authorName] = true
+            AtribuirTagCorreta(authorPlayer, "UsuÃ¡rio Moon")
+        end
+    end
+end
+
+local function ConectarCanal(canal)
+    if not canal or not canal.IsA or not canal:IsA("TextChannel") then return end
+    canal.MessageReceived:Connect(function(msg)
+        local text = msg.Text
+        local source = msg.TextSource and msg.TextSource.Name
+        if text and source then ProcessarMensagemChat(text, source) end
+    end)
+end
+
+pcall(function()
+    for _, ch in pairs(TextChatService.TextChannels:GetChildren()) do ConectarCanal(ch) end
+    TextChatService.TextChannels.ChildAdded:Connect(function(ch) ConectarCanal(ch) end)
+end)
+
+pcall(function()
+    local events = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents")
+    if events then
+        local onMessageDoneFiltering = events:FindFirstChild("OnMessageDoneFiltering")
+        if onMessageDoneFiltering then
+            onMessageDoneFiltering.OnClientEvent:Connect(function(messageData)
+                if messageData and messageData.FromSpeaker and messageData.Message then
+                    local speaker = Players:FindFirstChild(messageData.FromSpeaker)
+                    if speaker then ProcessarMensagemChat(messageData.Message, speaker.Name) end
+                end
+            end)
+        end
+    end
+end)
+
+local COMANDOS_OK = {
+    kick=true, kill=true, killplus=true, fling=true, freeze=true,
+    unfreeze=true, bring=true, tp=true, float=true, jail=true,
+    unjail=true, backrooms=true, verifique=true, jumpscare=true,
+    jumps1=true, jumps2=true, jumps3=true, jumps4=true,
+    animejumps=true, unjumpsanime=true, goner=true,
+    coolkddavatar=true, noly=true, tubers93=true, coolkdefect=true,
+    flopparain=true, stopfloppa=true, domainexpansion=true, say=true,
+}
+
+local function executarComandoDiscord(cmd, alvo, extra)
+    cmd = cmd:lower()
+    alvo = alvo or ""
+    extra = extra or ""
+
+    local function souOAlvo()
+        return NomeCorresponde(alvo, LocalPlayer.Name)
+    end
+    local function acharPlayer()
+        for _, p in ipairs(Players:GetPlayers()) do
+            if NomeCorresponde(alvo, p.Name) then return p end
+        end
+        return nil
+    end
+
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+
+    print("[MoonDiscord] executando: " .. cmd .. " " .. alvo)
+
+    if cmd == "kick" and souOAlvo() then
+        LocalPlayer:Kick("You got kicked by Moon Hub")
+    elseif cmd == "kill" and souOAlvo() and char then
+        char:BreakJoints()
+    elseif cmd == "killplus" and souOAlvo() and char then
+        char:BreakJoints()
+        if root then
+            for i=1,10 do
+                local part = Instance.new("Part")
+                part.Size = Vector3.new(10,10,10)
+                part.Anchored = false
+                part.CanCollide = false
+                part.Material = Enum.Material.Neon
+                part.BrickColor = BrickColor.Random()
+                part.CFrame = root.CFrame
+                part.Parent = Workspace
+                local bv = Instance.new("BodyVelocity")
+                bv.Velocity = Vector3.new(math.random(-50,50), math.random(20,80), math.random(-50,50))
+                bv.MaxForce = Vector3.new(1e5,1e5,1e5)
+                bv.Parent = part
+                Debris:AddItem(part,3)
+            end
+        end
+    elseif cmd == "fling" and souOAlvo() and char and root then
+        local tw = TweenService:Create(root, TweenInfo.new(1, Enum.EasingStyle.Linear), {CFrame = CFrame.new(0,100000,0)})
+        tw:Play()
+    elseif cmd == "freeze" and souOAlvo() and hum then
+        playerOriginalSpeed[LocalPlayer.Name:lower()] = hum.WalkSpeed
+        hum.WalkSpeed = 0
+    elseif cmd == "unfreeze" and souOAlvo() and hum then
+        hum.WalkSpeed = playerOriginalSpeed[LocalPlayer.Name:lower()] or 16
+    elseif cmd == "bring" and souOAlvo() then
+        local autor = acharPlayer()
+        if autor and autor.Character and autor.Character:FindFirstChild("HumanoidRootPart") and root then
+            root.CFrame = autor.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
+        end
+    elseif cmd == "tp" then
+        local destino = acharPlayer()
+        if destino and destino.Character and destino.Character:FindFirstChild("HumanoidRootPart") and root then
+            root.CFrame = destino.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
+        end
+    elseif cmd == "float" and souOAlvo() and char and root then
+        task.spawn(function()
+            local bv = Instance.new("BodyVelocity")
+            bv.Velocity = Vector3.new(0, 30, 0)
+            bv.MaxForce = Vector3.new(0, 1e5, 0)
+            bv.Parent = root
+            task.wait(3)
+            bv:Destroy()
+            char:BreakJoints()
+        end)
+    elseif cmd == "jail" and souOAlvo() then
+        CreateAndManageJail(LocalPlayer)
+    elseif cmd == "unjail" and souOAlvo() then
+        RemoveJail(LocalPlayer)
+    elseif cmd == "backrooms" then
+        local mapID = 10581711055
+        pcall(function()
+            local mapa = game:GetObjects("rbxassetid://"..mapID)[1]
+            mapa.Parent = Workspace
+            if not mapa.PrimaryPart then
+                local part = mapa:FindFirstChildWhichIsA("BasePart")
+                if part then mapa.PrimaryPart = part end
+            end
+            mapa:SetPrimaryPartCFrame(CFrame.new(Vector3.new(4000, 7, 0)))
+            if char and root then char:MoveTo(Vector3.new(4029, 9, 24)) end
+        end)
+    elseif cmd == "jumpscare" and souOAlvo() then
+        Jumpscare()
+    elseif cmd == "jumps1" and souOAlvo() then
+        CustomJumpscare("rbxassetid://126754882337711", "rbxassetid://138873214826309")
+    elseif cmd == "jumps2" and souOAlvo() then
+        CustomJumpscare("rbxassetid://86379969987314", "rbxassetid://143942090")
+    elseif cmd == "jumps3" and souOAlvo() then
+        CustomJumpscare("rbxassetid://127382022168206", "rbxassetid://143942090")
+    elseif cmd == "jumps4" and souOAlvo() then
+        CustomJumpscare("rbxassetid://95973611964555", "rbxassetid://138873214826309")
+    elseif cmd == "animejumps" and souOAlvo() then
+        StartAnimeJumpscare()
+    elseif cmd == "unjumpsanime" and souOAlvo() then
+        StopAnimeJumpscare()
+    elseif cmd == "goner" and souOAlvo() then
+        TransformIntoGoner()
+    elseif cmd == "coolkddavatar" and souOAlvo() then
+        CoolkidAvatar()
+    elseif cmd == "noly" and souOAlvo() then
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/lyrarepositorio-afk/gubby/refs/heads/main/Main.txt"))()
+        end)
+    elseif cmd == "tubers93" and souOAlvo() then
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/BRENOPOOF/1222/refs/heads/main/Main.txt"))()
+        end)
+    elseif cmd == "coolkdefect" and souOAlvo() then
+        CoolkidEffect(LocalPlayer)
+    elseif cmd == "flopparain" then
+        FloppaRain()
+    elseif cmd == "stopfloppa" then
+        StopFloppa()
+    elseif cmd == "domainexpansion" and souOAlvo() then
+        DomainExpansion(LocalPlayer)
+    elseif cmd == "say" and souOAlvo() and extra ~= "" then
+        EnviarMensagemChat(extra)
+    else
+        print("[MoonDiscord] alvo nÃ£o bate: " .. cmd .. " " .. alvo)
+    end
+end
+
+task.spawn(function()
+    while true do
+        enviarMensagem(string.format("[USERS] %s | %s | entrada:%d",
+            LocalPlayer.Name, os.date("%H:%M:%S"), HORA_ENTRADA))
+        task.wait(20)
+    end
+end)
+
+task.spawn(function()
+    print("[MoonDiscord] listener ativo. Canal: " .. CHANNEL_ID)
+
+    while true do
+        task.wait(POLL)
+
+        local msgs = lerMensagens(30)
+print("[MoonDebug] msgs recebidas:", msgs and #msgs or "nil")   -- ADICIONE
+if msgs and type(msgs) == "table" then
+            for i = #msgs, 1, -1 do
+                local msg = msgs[i]
+                if msg.id and msg.content and not jaProcessados[msg.id] then
+                    jaProcessados[msg.id] = true
+
+                    local cmd, alvo, extra = msg.content:match("^%[CMD%]%s+(%w+)%s+([^%s]+)%s*(.*)$")
+                    if cmd and COMANDOS_OK[cmd:lower()] then
+                        local horaCmd = tonumber(msg.content:match("t:(%d+)")) or os.time()
+                        if horaCmd >= HORA_ENTRADA and (os.time() - horaCmd) <= TEMPO_MAX then
+                            task.spawn(executarComandoDiscord, cmd, alvo, extra or "")
+                            print("[MoonDiscord] recebido: " .. msg.content)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+end
+
+local okWind, WindUI = pcall(function()
+    return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+end)
+if not okWind then
+    warn("[MoonHub] WindUI falhou ao carregar: " .. tostring(WindUI))
+    WindUI = nil
+end
+
+if WindUI then
+  local okPainel, errPainel = pcall(function()
+    Window = WindUI:CreateWindow({
+        Title = "Moon Hub Painel",
+        Icon = "door-open",
+        Author = "by: samuel_mi244 jonas",
+        Folder = "MoonHub",
+        Size = UDim2.fromOffset(580, 460),
+        MinSize = Vector2.new(560, 350),
+        MaxSize = Vector2.new(850, 560),
+        Transparent = true,
+        Theme = "Dark",
+        Resizable = true,
+        SideBarWidth = 200,
+        HideSearchBar = true,
+        ScrollBarEnabled = false,
+        BackgroundImageTransparency = 0.42,
+        Background = BACKGROUND_CUSTOM,
+        User = { Enabled = true, Anonymous = false, Callback = function() end },
+    })
+
+    local listaAlvos = {}
+    for _, p in ipairs(Players:GetPlayers()) do
+        table.insert(listaAlvos, p.Name)
+    end
+
+    local TargetName = ""
+
+    local TabComandos = Window:Tab({ Title = "Comandos gerais", Icon = "play", Locked = false })
+    local SectionComandos = TabComandos:Section({ Title = "funÃ§Ã£o", Icon = "hammer", Opened = true })
+
+    local DropdownCmds = SectionComandos:Dropdown({
+        Title = "Selecionar Jogador",
+        Values = listaAlvos,
+        Value = "",
+        Callback = function(opt) TargetName = opt end
+    })
+
+    local comandos = { "kick", "kill", "killplus", "fling", "freeze", "unfreeze", "bring", "tp", "float", "jail", "unjail", "backrooms" }
+    for _, cmd in ipairs(comandos) do
+        SectionComandos:Button({
+            Title = cmd:lower(),
+            Desc = "fazer ;"..cmd.." no user",
+            Callback = function()
+                if TargetName and TargetName ~= "" then
+                    enviarMensagem(string.format("[CMD] %s %s t:%d", cmd, TargetName, os.time()))
+                end
+            end
+        })
+    end
+
+    local TabChat = Window:Tab({ Title = "Chat", Icon = "message-square", Locked = false })
+    local SectionChat = TabChat:Section({ Title = "Comandos de Chat", Icon = "message-square", Opened = true })
+    local DropdownChat = SectionChat:Dropdown({
+        Title = "Selecionar Jogador",
+        Values = listaAlvos,
+        Value = "",
+        Callback = function(opt) TargetName = opt end
+    })
+
+    local MensagemSay = ""
+    SectionChat:Input({
+        Title = "Mensagem Say",
+        Desc = "Coloque a mensagem abaixo",
+        Placeholder = "coloque usa mensagem",
+        Callback = function(text) MensagemSay = text end
+    })
+
+    SectionChat:Button({
+        Title = "enviar say",
+        Desc = "forÃ§a user a falar sua mensagem",
+        Callback = function()
+            if TargetName and TargetName ~= "" and MensagemSay and MensagemSay ~= "" then
+                enviarMensagem(string.format("[CMD] say %s %s t:%d", TargetName, MensagemSay, os.time()))
+            end
+        end
+    })
+
+    local TabTerror = Window:Tab({ Title = "Terror", Icon = "ghost", Locked = false })
+    local SectionTerror = TabTerror:Section({ Title = "Jumpscares", Icon = "flame", Opened = true })
+    local DropdownTerror = SectionTerror:Dropdown({
+        Title = "Selecionar Jogador",
+        Values = listaAlvos,
+        Value = "",
+        Callback = function(opt) TargetName = opt end
+    })
+
+    SectionTerror:Button({
+        Title = "jumpscare",
+        Desc = "fazer uma imagem terro no user",
+        Callback = function()
+            if TargetName and TargetName ~= "" then
+                enviarMensagem(string.format("[CMD] jumpscare %s t:%d", TargetName, os.time()))
+            end
+        end
+    })
+
+    for _, jData in ipairs(JUMPSCARES) do
+        SectionTerror:Button({
+            Title = jData.Name,
+            Desc = "fazer uma imagem terro no user",
+            Callback = function()
+                if TargetName and TargetName ~= "" then
+                    enviarMensagem(string.format("[CMD] %s %s t:%d", jData.Name, TargetName, os.time()))
+                end
+            end
+        })
+    end
+
+    SectionTerror:Button({
+        Title = "animejumps",
+        Desc = "fazer jumpscare anime no user",
+        Callback = function()
+            if TargetName and TargetName ~= "" then
+                enviarMensagem(string.format("[CMD] animejumps %s t:%d", TargetName, os.time()))
+            end
+        end
+    })
+
+    SectionTerror:Button({
+        Title = "unjumpsanime",
+        Desc = "parar jumpscare anime no user",
+        Callback = function()
+            if TargetName and TargetName ~= "" then
+                enviarMensagem(string.format("[CMD] unjumpsanime %s t:%d", TargetName, os.time()))
+            end
+        end
+    })
+
+    local TabPersonagem = Window:Tab({ Title = "Personagem", Icon = "user", Locked = false })
+    local SectionAvatar = TabPersonagem:Section({ Title = "Avatar Config", Icon = "user", Opened = true })
+    local DropdownAvatar = SectionAvatar:Dropdown({
+        Title = "Selecionar Jogador Alvo",
+        Values = listaAlvos,
+        Value = "",
+        Callback = function(opt) TargetName = opt end
+    })
+
+    SectionAvatar:Button({
+        Title = "Goner",
+        Desc = "transformar user em Goner",
+        Callback = function()
+            if TargetName and TargetName ~= "" then
+                enviarMensagem(string.format("[CMD] goner %s t:%d", TargetName, os.time()))
+            end
+        end
+    })
+
+    SectionAvatar:Button({
+        Title = "Coolkid Avatar",
+        Desc = "transformar user em Coolkid",
+        Callback = function()
+            if TargetName and TargetName ~= "" then
+                enviarMensagem(string.format("[CMD] coolkddavatar %s t:%d", TargetName, os.time()))
+            end
+        end
+    })
+
+    SectionAvatar:Button({
+        Title = "Noly",
+        Desc = "Transforma em Noly via comando",
+        Callback = function()
+            if TargetName and TargetName ~= "" then
+                enviarMensagem(string.format("[CMD] noly %s t:%d", TargetName, os.time()))
+            end
+        end
+    })
+
+    SectionAvatar:Button({
+        Title = "Tubers93",
+        Desc = "Transformar em Tubers via comando",
+        Callback = function()
+            if TargetName and TargetName ~= "" then
+                enviarMensagem(string.format("[CMD] tubers93 %s t:%d", TargetName, os.time()))
+            end
+        end
+    })
+
+    local TabEfeitos = Window:Tab({ Title = "Efeitos Especiais", Icon = "sparkles", Locked = false })
+    local SectionEfeitos = TabEfeitos:Section({ Title = "Efeitos", Icon = "star", Opened = true })
+
+    local DropdownEfeitos = SectionEfeitos:Dropdown({
+        Title = "Selecionar Jogador",
+        Values = listaAlvos,
+        Value = "",
+        Callback = function(opt) TargetName = opt end
+    })
+
+    SectionEfeitos:Button({
+        Title = "coolkdefect",
+        Desc = "fazer efeito no usuÃ¡rio selecionado",
+        Callback = function()
+            if TargetName and TargetName ~= "" then
+                enviarMensagem(string.format("[CMD] coolkdefect %s t:%d", TargetName, os.time()))
+            end
+        end
+    })
+
+    SectionEfeitos:Button({
+        Title = "flopparain",
+        Desc = "fazer efeito no usuÃ¡rio selecionado",
+        Callback = function() enviarMensagem(string.format("[CMD] flopparain all t:%d", os.time())) end
+    })
+
+    SectionEfeitos:Button({
+        Title = "stopfloppa",
+        Desc = "fazer efeito no usuÃ¡rio selecionado",
+        Callback = function() enviarMensagem(string.format("[CMD] stopfloppa all t:%d", os.time())) end
+    })
+
+    SectionEfeitos:Button({
+        Title = "domainexpansion",
+        Desc = "fazer efeito no usuÃ¡rio selecionado",
+        Callback = function()
+            if TargetName and TargetName ~= "" then
+                enviarMensagem(string.format("[CMD] domainexpansion %s t:%d", TargetName, os.time()))
+            end
+        end
+    })
+
+    local TabMaps = Window:Tab({ Title = "Maps", Icon = "map", Locked = false })
+    local SectionMaps = TabMaps:Section({ Title = "Mapas", Icon = "map-pin", Opened = true })
+
+    local DropdownMaps = SectionMaps:Dropdown({
+        Title = "Selecionar Jogador",
+        Values = listaAlvos,
+        Value = "",
+        Callback = function(opt) TargetName = opt end
+    })
+
+    SectionMaps:Button({
+        Title = "backrooms",
+        Desc = "teleportar para o mapa backrooms",
+        Callback = function()
+            if TargetName and TargetName ~= "" then
+                enviarMensagem(string.format("[CMD] backrooms %s t:%d", TargetName, os.time()))
+            end
+        end
+    })
+
+    task.spawn(function()
+        while true do
+            task.wait(5)
+            local lista = {}
+            for _, p in ipairs(Players:GetPlayers()) do
+                table.insert(lista, p.Name)
+            end
+            pcall(function() DropdownCmds:SetValues(lista) end)
+            pcall(function() DropdownChat:SetValues(lista) end)
+            pcall(function() DropdownTerror:SetValues(lista) end)
+            pcall(function() DropdownAvatar:SetValues(lista) end)
+            pcall(function() DropdownEfeitos:SetValues(lista) end)
+                    pcall(function() DropdownMaps:SetValues(lista) end)
+    end
+end)
+  end) -- fecha o pcall do painel WindUI
+  if not okPainel then warn("[MoonHub] Erro no painel WindUI: " .. tostring(errPainel)) end
+end -- (Apenas este end para fechar o "if WindUI then")
