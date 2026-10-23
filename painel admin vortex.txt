@@ -12,13 +12,13 @@ local LocalPlayer = Players.LocalPlayer
 local Workspace = workspace
 
 local BOT_TOKEN = ""
-local CHANNEL_ID = "1557741323963080746"
+local CHANNEL_ID = "728284673647338"
 local POLL = 2
 local TEMPO_MAX = 15
 
 local HORA_ENTRADA = os.time()
 
-local GITHUB_WHITELIST_URL = "https://raw.githubusercontent.com/gaga123308/Usu-rios-Drak-hub/refs/heads/main/User.lua"
+local GITHUB_WHITELIST_URL = "https://raw.githubusercontent.com/trakishub/Vortex-hub-v5/refs/heads/main/Usu%C3%A1rios"
 local CargosGlobais = {}
 
 pcall(function()
