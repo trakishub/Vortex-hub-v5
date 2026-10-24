@@ -1,0 +1,379 @@
+--[[
+=====================================================================
+  BROOKHAVEN - FREE GAMEPASS
+  Pega qualquer ferramenta (inclusive de gamepass) pela remote nativa.
+  Arrasta pela barra azul. RightControl abre/fecha.
+=====================================================================
+]]
+
+local CONFIG = { ToggleKey = Enum.KeyCode.RightControl }
+
+local RS      = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local UIS     = game:GetService("UserInputService")
+local LP      = Players.LocalPlayer
+
+-- ===================== REMOTES =====================
+local function achar(pai, chaves)
+	if not pai then return nil end
+	for _, c in ipairs(chaves) do
+		local o = pai:FindFirstChild(c)
+		if o then return o end
+	end
+	for _, o in ipairs(pai:GetDescendants()) do
+		for _, c in ipairs(chaves) do
+			if o.Name == c then return o end
+		end
+	end
+	return nil
+end
+
+local PICK = achar(RS:FindFirstChild("RE"), { "1Too1l", "1Tool", "Tool" })
+local GUN  = achar(RS:FindFirstChild("Remotes"), { "GunEquip" })
+
+-- ===================== LISTA =====================
+local FALLBACK = {
+	"Apple","Axe","Banana","Basketball","BBQTool","Bomb","Book","Boombox","BottledWater","Brush",
+	"Candle","CandyCane","ChipsRed","ChocolateBar","Coke","Couch","Crystal","Donut","EggLauncher",
+	"FireHose","Firework","FishingRod","Football","Glider","GlockBrown","Hammer","Hoverboard",
+	"HotDog","Icecream","Megaphone","Money","Newspaper","PaintRoller","Phone","Pizza","Popcorn",
+	"Present","Shotgun","SignRed","Snowball","SoccerBall","SprayCan","Toothbrush","Trophy","Vacuum",
+	"Waffle","WaterBalloon","WateringCan","Weights","Wrench","YogaMat",
+}
+
+local function puxarLista()
+	local lista, visto = {}, {}
+
+	local mod = RS:FindFirstChild("Modules")
+	mod = mod and mod:FindFirstChild("Shared")
+	mod = mod and mod:FindFirstChild("DB")
+	mod = mod and mod:FindFirstChild("Tools")
+	mod = mod and mod:FindFirstChild("ToolsConfig")
+
+	if mod and mod:IsA("ModuleScript") then
+		local ok, cfg = pcall(require, mod)
+		if ok and type(cfg) == "table" then
+			local dados = cfg.cache or cfg
+			for k, v in pairs(dados) do
+				if type(v) == "table" and v.IsCategory ~= true then
+					local nome = (type(v.Name) == "string" and v.Name) or (type(k) == "string" and k)
+					if nome and nome ~= "" and nome ~= "ClearTools" and not visto[nome] then
+						visto[nome] = true
+						table.insert(lista, { nome = nome, gun = type(v.GunSkin) == "string" and v.GunSkin or nil })
+					end
+				end
+			end
+		end
+	end
+
+	if #lista == 0 then
+		for _, n in ipairs(FALLBACK) do
+			if not visto[n] then visto[n] = true; table.insert(lista, { nome = n }) end
+		end
+	end
+
+	table.sort(lista, function(a, b) return a.nome:lower() < b.nome:lower() end)
+	return lista
+end
+
+-- ===================== AÇÕES =====================
+local function tenho(nome)
+	local bp = LP:FindFirstChildOfClass("Backpack")
+	local ch = LP.Character
+	return (bp and bp:FindFirstChild(nome)) ~= nil or (ch and ch:FindFirstChild(nome)) ~= nil
+end
+
+local function spawnar(item)
+	if item.gun and GUN then
+		pcall(function() GUN:InvokeServer(item.gun, item.nome) end)
+	end
+	if not PICK then return false, "remote RE['1Too1l'] nao encontrado" end
+	local ok, err = pcall(function() PICK:InvokeServer("PickingTools", item.nome) end)
+	return ok, err
+end
+
+-- ===================== HELPERS =====================
+local C = {
+	Azul = Color3.fromRGB(11, 125, 199),
+	AzulBtn = Color3.fromRGB(9, 104, 166),
+	Fundo = Color3.fromRGB(15, 15, 18),
+	Busca = Color3.fromRGB(43, 43, 49),
+	Linha = Color3.fromRGB(27, 27, 32),
+	LinhaHov = Color3.fromRGB(38, 38, 45),
+	Texto = Color3.fromRGB(246, 246, 250),
+	Fraco = Color3.fromRGB(140, 140, 150),
+	Borda = Color3.fromRGB(40, 40, 48),
+	Verde = Color3.fromRGB(74, 200, 120),
+	Vermelho = Color3.fromRGB(230, 130, 130),
+}
+
+local function novo(classe, props, pai)
+	local i = Instance.new(classe)
+	for k, v in pairs(props or {}) do i[k] = v end
+	if pai then i.Parent = pai end
+	return i
+end
+
+local function cantos(i, r) Instance.new("UICorner", i).CornerRadius = UDim.new(0, r) end
+local function borda(i, cor)
+	local s = Instance.new("UIStroke", i)
+	s.Color = cor
+	s.Thickness = 1
+	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+end
+
+local parent = (typeof(gethui) == "function" and gethui()) or game:GetService("CoreGui")
+
+local gui = novo("ScreenGui", {
+	Name = "FreeGamepass",
+	ResetOnSpawn = false,
+	IgnoreGuiInset = true,
+	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+}, parent)
+
+local painel = novo("Frame", {
+	Size = UDim2.new(0, 280, 0, 380),
+	Position = UDim2.new(0.5, -140, 0.5, -190),
+	BackgroundColor3 = C.Fundo,
+	BorderSizePixel = 0,
+	ClipsDescendants = true,
+}, gui)
+cantos(painel, 6)
+borda(painel, C.Borda)
+
+local barra = novo("Frame", {
+	Size = UDim2.new(1, 0, 0, 30),
+	BackgroundColor3 = C.Azul,
+	BorderSizePixel = 0,
+}, painel)
+
+novo("TextLabel", {
+	Text = "FREE GAMEPASS",
+	Font = Enum.Font.GothamBold,
+	TextSize = 12,
+	TextColor3 = C.Texto,
+	BackgroundTransparency = 1,
+	Size = UDim2.new(1, 0, 1, 0),
+}, barra)
+
+local btnFechar = novo("TextButton", {
+	Text = "×",
+	Font = Enum.Font.GothamBold,
+	TextSize = 14,
+	TextColor3 = C.Texto,
+	BackgroundColor3 = C.AzulBtn,
+	BorderSizePixel = 0,
+	Position = UDim2.new(1, -25, 0.5, -10),
+	Size = UDim2.new(0, 20, 0, 20),
+}, barra)
+cantos(btnFechar, 4)
+
+local buscaWrap = novo("Frame", {
+	Position = UDim2.new(0, 8, 0, 40),
+	Size = UDim2.new(1, -16, 0, 30),
+	BackgroundColor3 = C.Busca,
+	BorderSizePixel = 0,
+}, painel)
+cantos(buscaWrap, 5)
+
+novo("TextLabel", {
+	Text = "🔍",
+	Font = Enum.Font.Gotham,
+	TextSize = 12,
+	TextColor3 = C.Fraco,
+	BackgroundTransparency = 1,
+	Position = UDim2.new(0, 9, 0, 0),
+	Size = UDim2.new(0, 18, 1, 0),
+}, buscaWrap)
+
+local busca = novo("TextBox", {
+	PlaceholderText = "Procurar ferramenta...",
+	PlaceholderColor3 = C.Fraco,
+	Text = "",
+	Font = Enum.Font.Gotham,
+	TextSize = 13,
+	TextColor3 = C.Texto,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	BackgroundTransparency = 1,
+	Position = UDim2.new(0, 29, 0, 0),
+	Size = UDim2.new(1, -37, 1, 0),
+	ClearTextOnFocus = false,
+}, buscaWrap)
+
+local contador = novo("TextLabel", {
+	Text = "",
+	Font = Enum.Font.Gotham,
+	TextSize = 11,
+	TextColor3 = C.Fraco,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	BackgroundTransparency = 1,
+	Position = UDim2.new(0, 11, 0, 76),
+	Size = UDim2.new(1, -22, 0, 14),
+}, painel)
+
+local lista = novo("ScrollingFrame", {
+	Position = UDim2.new(0, 0, 0, 94),
+	Size = UDim2.new(1, 0, 1, -122),
+	BackgroundTransparency = 1,
+	BorderSizePixel = 0,
+	ScrollBarThickness = 3,
+	ScrollBarImageColor3 = C.Azul,
+	CanvasSize = UDim2.new(0, 0, 0, 0),
+	AutomaticCanvasSize = Enum.AutomaticSize.Y,
+}, painel)
+
+novo("UIListLayout", { Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder }, lista)
+
+local status = novo("TextLabel", {
+	Text = "",
+	Font = Enum.Font.Gotham,
+	TextSize = 11,
+	TextColor3 = C.Fraco,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	TextTruncate = Enum.TextTruncate.AtEnd,
+	BackgroundTransparency = 1,
+	Position = UDim2.new(0, 11, 1, -26),
+	Size = UDim2.new(1, -22, 0, 20),
+}, painel)
+
+local function avisar(msg, bom)
+	status.Text = msg
+	status.TextColor3 = bom == true and C.Verde or (bom == false and C.Vermelho or C.Fraco)
+end
+
+-- ===================== LISTA =====================
+local TOOLS = puxarLista()
+local linhas = {}
+
+for _, item in ipairs(TOOLS) do
+	local row = novo("Frame", {
+		Size = UDim2.new(1, 0, 0, 26),
+		BackgroundColor3 = C.Linha,
+		BorderSizePixel = 0,
+	}, lista)
+
+	local botao = novo("TextButton", {
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundTransparency = 1,
+		Text = "",
+	}, row)
+
+	novo("TextLabel", {
+		Text = item.nome,
+		Font = Enum.Font.Gotham,
+		TextSize = 13,
+		TextColor3 = C.Texto,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		BackgroundTransparency = 1,
+		Position = UDim2.new(0, 12, 0, 0),
+		Size = UDim2.new(1, -34, 1, 0),
+	}, botao)
+
+	local marca = novo("TextLabel", {
+		Text = "●",
+		Font = Enum.Font.GothamBold,
+		TextSize = 12,
+		TextColor3 = C.Verde,
+		BackgroundTransparency = 1,
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -11, 0.5, 0),
+		Size = UDim2.new(0, 14, 1, 0),
+		Visible = false,
+	}, botao)
+
+	botao.MouseEnter:Connect(function() row.BackgroundColor3 = C.LinhaHov end)
+	botao.MouseLeave:Connect(function() row.BackgroundColor3 = C.Linha end)
+
+	botao.MouseButton1Click:Connect(function()
+		local ok, err = spawnar(item)
+		if ok then
+			avisar("Pegou: " .. item.nome, true)
+			task.delay(0.7, function() marca.Visible = tenho(item.nome) end)
+		else
+			avisar("Falhou: " .. tostring(err), false)
+		end
+	end)
+
+	table.insert(linhas, { row = row, nome = item.nome:lower(), item = item })
+end
+
+contador.Text = ("%d ferramentas"):format(#TOOLS)
+
+busca:GetPropertyChangedSignal("Text"):Connect(function()
+	local termo = busca.Text:lower()
+	local n = 0
+	for _, l in ipairs(linhas) do
+		local bate = termo == "" or l.nome:find(termo, 1, true) ~= nil
+		l.row.Visible = bate
+		if bate then n = n + 1 end
+	end
+	contador.Text = termo == "" and ("%d ferramentas"):format(#TOOLS) or ("%d resultado(s)"):format(n)
+end)
+
+task.spawn(function()
+	while gui.Parent do
+		for _, l in ipairs(linhas) do
+			local b = l.row:FindFirstChildOfClass("TextButton")
+			if b then
+				for _, c in ipairs(b:GetChildren()) do
+					if c:IsA("TextLabel") and c.Text == "●" then c.Visible = tenho(l.item.nome) end
+				end
+			end
+		end
+		task.wait(1.5)
+	end
+end)
+
+-- ===================== ARRASTAR / FECHAR =====================
+local arrastando, inicio, posIni = false, nil, nil
+barra.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		arrastando, inicio, posIni = true, input.Position, painel.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then arrastando = false end
+		end)
+	end
+end)
+
+UIS.InputChanged:Connect(function(input)
+	if arrastando and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		local d = input.Position - inicio
+		painel.Position = UDim2.new(posIni.X.Scale, posIni.X.Offset + d.X, posIni.Y.Scale, posIni.Y.Offset + d.Y)
+	end
+end)
+
+local abrir = novo("TextButton", {
+	Text = "Vortex gamepass beta",
+	Font = Enum.Font.GothamBold,
+	TextSize = 11,
+	TextColor3 = C.Texto,
+	BackgroundColor3 = C.Azul,
+	BorderSizePixel = 0,
+	Size = UDim2.new(0, 130, 0, 28),
+	Position = UDim2.new(0, 20, 0.5, 0),
+	Visible = false,
+}, gui)
+cantos(abrir, 5)
+
+btnFechar.MouseButton1Click:Connect(function()
+	painel.Visible = false
+	abrir.Visible = true
+end)
+abrir.MouseButton1Click:Connect(function()
+	painel.Visible = true
+	abrir.Visible = false
+end)
+
+UIS.InputBegan:Connect(function(input, proc)
+	if proc then return end
+	if input.KeyCode == CONFIG.ToggleKey then
+		painel.Visible = not painel.Visible
+		abrir.Visible = not painel.Visible
+	end
+end)
+
+if PICK then
+	avisar(("%d ferramentas carregadas"):format(#TOOLS), nil)
+else
+	avisar("⚠ RE['1Too1l'] nao encontrado", false)
+end
