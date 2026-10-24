@@ -8797,6 +8797,14 @@ ScrTab:AddButton({
     end
 })
 
+ScrTab:AddSection({ "Free gamepass" })
+ScrTab:AddButton({
+    Name = "gamepass teste",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/trakishub/Vortex-hub-v5/refs/heads/main/Free%20gamepass"))()
+    end
+})
+
 local ScrTab = Window:MakeTab({ "Horror", "rbxassetid://13364900349" })
 
 ScrTab:AddSection({ "Naruto" })
